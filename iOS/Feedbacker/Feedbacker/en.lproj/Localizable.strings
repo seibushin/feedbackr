@@ -1,0 +1,33 @@
+/* 
+  Localizable.strings
+  Feedbacker
+
+  Created by Anton Borries on 19.07.17.
+  Copyright © 2017 Anton Borries. All rights reserved.
+*/
+
+"cat_pos_sit" = "Place to sit";
+"cat_pos_toilet" = "Public/Clean Toilet";
+"cat_pos_disability_access" = "Disability Access";
+"cat_pos_wifi" = "Public Wi-Fi";
+"cat_pos_eat_drink" = "Place to Eat/Drink";
+"cat_pos_nice_view" = "Nice View";
+"cat_neg_dark" = "Dark Place";
+"cat_neg_dirty" = "Dirty";
+"cat_neg_people" = "Shady Group of People";
+"cat_neg_walking_friendly" = "Not Pedestrian Friendly";
+"cat_neg_graffiti" = "Graffiti";
+"cat_pos_general" = "General Positive";
+"cat_neg_general" = "General Negative";
+
+"describe" = "Describe your Feedback...";
+
+"delete_confirmation" = "Are you sure you want to delete the feedback? This can't be undone.";
+"switch_warning" = "Switching the Feedback will loose the current Category";
+
+"title_delete" = "Delete Feedback?";
+"title_switch" = "Switch Kind?";
+
+"delete" = "Delete";
+"switch" = "Switch";
+"cancel" = "Cancel";

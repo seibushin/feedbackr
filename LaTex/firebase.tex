@@ -1,0 +1,217 @@
+\section{Firebase}
+
+\subsection{What is Firebase?}
+Firebase is a platform of development tools for mobile and web apps.\\
+It was originally founded by James Tamplin and Andrew Lee on September 1, 2011 \cite{crunchbase}. The first beta version was made available on April 21, 2012 \cite{beta}. Firebase was acquired by Google on October 21, 2014 \cite{crunchbase}.\\
+Firebase's products can be separated into tools for development and tools for user growth and monetization. Feedbacker does not implement any features from the second category yet. The following table lists the features provided by Firebase that are used within the Feedbacker app.
+\begin{table}[H]
+\begin{center}
+\begin{tabular}{l  l}
+  Feature & used in Feedbacker \\
+  \hline
+    Realtime Database & Yes \\
+    Crash Reporting & Yes \\
+    Authentication & Yes \\
+    Cloud Functions & No \\
+    Cloud Storage & No \\
+    Hosting & No \\
+    Test Lab for Android & No \\
+    Performance Monitoring & No \\
+\end{tabular}
+ \caption{Firebase Products}\label{tab_products}
+ \label{table:products}
+\end{center}
+\end{table}
+
+Most of Firebase's products offer support for Android, iOS, Web (in form of JavaScript), C++ and for Unity \cite{products}.
+
+
+
+\subsection{Why Firebase for Feedbacker}
+The primary reason for using firebase as the backend service was the ease of use for multiplatform development as well as the quick set-up which does not require to develop code for the server and the database. With Firebase it was easy to develop a first prototype which could then be refined, developed further and made more secure. \\
+Also Firebase has all features which are necessary for Feedbacker, most importantly the database. Thinking ahead, many of possible features (see  section \ref{sec:future}) can be realized using Firebase.
+
+\subsection{Authentication} \label{sec:auth}
+Feedbacker makes use of Firebase's Anonymous Auth. This has the advantage that the user does not need to sign up with an email or similar form of authentication, skipping the signup/login step while still providing security and ensuring anonymity.
+\begin{listing}
+  \caption{User Authentication on Android}
+  \label{mint:auth_android}
+  \begin{minted}[frame=lines, framesep=10pt]{java}
+FirebaseAuth auth = FirebaseAuth.getInstance();
+if (auth.getCurrentUser() == null) {
+  auth.signInAnonymously();
+}
+  \end{minted}
+
+\end{listing}
+
+This code checks whether or not the user is currently authenticated. If he is not, he will get signed in anonymously. Firebase will assign a random, unique UID for the user. Having a form of authentication is important to make the data in Firebase secure, as will be further explained in section \ref{ssec:sec_rules}
+
+\subsection{Data Structure}\label{ssec:data_structure}
+The firebase database stores the data in one JSON tree. The different sections within this JSON tree are explained in the following.
+
+\paragraph{Categories}\label{par:db_cat}
+All accepted categories are stored in the database to enable a security check (\ref{ssec:sec_rules}) when writing new feedback to the database.
+\begin{listing}[H]
+  \caption{Database Object Categories}
+  \label{mint:db_categories}
+  \begin{minted}[frame=lines, framesep=10pt]{json}
+"categories" : {
+  "NEG_DARK" : false,
+  "NEG_DIRTY" : false,
+  ...
+  "POS_DISABILITY" : true,
+  "POS_EAT_DRINK" : true,
+  ...
+}
+  \end{minted}
+\end{listing}
+The allowed categories are stored as keys of a dictionary in the database. As only the keys are required for the security check, the values could be arbitrary. I chose to set them as a boolean value to make clear what kind of feedback the category is representing.
+
+
+\paragraph{Feedback}
+The most important objects in the database are those representing a single feedback (see the following example).
+\begin{listing}[H]
+  \caption{Database Object Feedback}
+  \label{mint:db_feedback}
+  \begin{minted}[frame=lines, framesep=10pt]{json}
+"-KmSCGPr2UfcRHXpEPzo" : {
+  "category" : "POS_EAT_DRINK",
+  "city" : "Düsseldorf",
+  "date" : 1497286119952,
+  "details" : "Coffee at Campus Vita",
+  "latitude" : 51.1921476,
+  "longitude" : 6.793424,
+  "positive" : true,
+  "published" : false,
+  "id" : "-KmSCGPr2UfcRHXpEPzo"
+}
+  \end{minted}
+\end{listing}
+The title of the object is a unique key, that Firebase generated before initially saving it to the database. "category" specifies the feedback and must be a valid key defined in the category section. The "date" attribute is the UNIX-Timecode of the feedback. "details" stores the optional descriptive text the user used to further specify his feedback. The attributes "latitude" and "longitude" are the coordinates of the feedback. The "positive" attribute shows whether a feedback is positive or negative with true for positive feedbacks and false for negative feedbacks. The "published" attribute determines whether or not the user published his feedback for other users.
+
+\paragraph{User}
+To allow only the creator of a feedback to edit it afterwards it is important to store the connection between each feedback and its creator in the database. The feedbacks are stored in a dedicated section in case more user data has to be sored separately in a future version of Feedbacker.
+\begin{listing}[H]
+\caption{Database Object User}
+\label{mint:db_user}
+\begin{minted}[frame=lines, framesep=10pt]{json}
+"Vd2dbO95K7fT1PbzFt9ZnbDkLtz2" : {
+  "feedback" : {
+    "-Kmg08cxhJJ-bFJPWQGZ" : "POS_SIT",
+    "-Kmg1KCc81FxAX__Zg_Q" : "NEG_GENERAL",
+    "-Kmg1Qwx0e-pD0WPa-2f" : "NEG_DARK",
+    "-Kmg1VFcJ_J6biXJDwhc" : "POS_VIEW"
+  }
+}
+    \end{minted}
+\end{listing}
+
+The title of the section is the users unique UID, generated by Firebase during the authentication process (section \ref{sec:auth}). The feedback section holds keys that reference the unique IDs that are associated with each feedback this user has provided. The corresponding value details the category of the respective feedback. This allows updating the user interface (UI) in the map view and the profile view when the category changed.
+
+\paragraph{Published}
+All published feedbacks are stored in a section of the database as well.
+\begin{listing}[H]
+  \caption{Database Object Published}
+  \label{mint:db_published}
+  \begin{minted}[frame=lines, framesep=10pt]{json}
+"published" : {
+  "-KieONK1zQZueVvSIYIJ" : "POS_DISABILITY",
+  "-KieWhBvNKZ7aZJr0YqJ" : "NEG_GRAFFITI",
+  "-Klc-1KaHRvryB8LJiTn" : "POS_SIT",
+  ...
+}
+  \end{minted}
+\end{listing}
+
+Similar to the user section, the individual feedbacks are stored with their unique ID and category, thus enabling to handle a change of category easily.
+
+
+
+\subsection{Firebase Security Rules} \label{ssec:sec_rules}
+An important part of every app handling sensitive data, like the user's location in this case, is the security of its database. In Firebase this is accomplished using security rules. They are necessary because, in contrast to a traditional database approach, all read and write operations are initiated by the user instead of the server. Therefore, read and write access as well as validating new data need to be handled by security rules.\\
+The security rules work in a cascading way. This means that if a user has read or write access on one object of the database, he also has access on the children of that data object.
+
+\paragraph{Category Level}
+No rules have been specified for the category section. Firebase then automatically defaults the read and write access to false, which is a reasonable choice here. In the future it might be an option to allow admins write access in order to add new categories.
+
+
+\paragraph{Feedback Level} \label{par:sec_rule_feedback}
+As the app is built upon the feedbacks it is important to have them secured in the database. This is achieved by the following code.
+
+\begin{listing}[H]
+  \caption{Security Rules Feedback}
+  \label{mint:sec_rule_feedback}
+  \begin{minted}[frame=lines, framesep = 10pt, linenos, firstnumber=3, breaklines, breakbefore=.]{json}
+"feedback":{
+  "$feedbackID":{
+    ".read" : "auth != null && (data.child('published').val() === true || root.child('users').child(auth.uid).child('feedback').child($feedbackID).exists())",
+    ".write" : "auth != null && (!data.exists() || root.child('users').child(auth.uid).child('feedback').child($feedbackID).exists())",
+    ".validate" : "newData.hasChildren(['latitude', 'longitude', 'positive', 'date', 'category', 'city', 'published', 'details', 'id'])",
+    "latitude" : {".validate" : "newData.isNumber()"},
+    "longitude" : {".validate" : "newData.isNumber()"},
+    "positive" : {".validate" : "newData.isBoolean()"},
+    "date" : {".validate" : "newData.isNumber()"},
+    "category" : {".validate" : "newData.isString() && root.child('categories/' + newData.val()).exists()"},
+    "city" : {".validate" : "newData.isString()"},
+    "published" : {".validate" : "newData.isBoolean()"},
+    "details" : {".validate" : "newData.isString()"},
+    "id" : {".validate" : "newData.isString() && newData.val() === $feedbackID"},
+    "$other" : {".validate" : false}
+  }
+},
+  \end{minted}
+\end{listing}
+
+Line 5 handles who has read access on the Feedback. \mintinline{json}{"auth != null"} ensures that only users who are authorized (see section \ref{sec:auth}) have the possibility to read the data. \mintinline{json}{"data.child('published').val() === true"} grants read access if the feedback was published by another user. The rest of the expression checks if the feedback was send by the currently logged in user as \mintinline{json}{"auth.uid"} returns the uid of the user who makes the request.\\
+The write access is handled similarly. It also checks if the user is authorized and if the request is coming from the author of feedback in case it is edited (Firebase does not distinguish between new writes and edits). For new data that is not yet written in the user's section \mintinline{json}{"!data.exists()"} allows this data to be saved. Line 7 is responsible for the sanity of new data. Specifically it checks whether a new data set has all the required fields. If it does not have all the fields, the write operation is cancelled and no data is written.\\
+The other lines make sure only data of the correct type can be written in each field. For the category \mintinline{json}{"root.child('categories/' + newData.val()).exists()"} makes sure the category written is listed in the category section of the database.\\
+To make sure the id saved really is the true id of the feedback \mintinline{json}{"newData.val() === $feedbackID"} is checked. As a last check \mintinline{json}|"$other" : {".validate" : false}| is making sure that all other fields are rejected and thus not writing to the database.
+
+
+\paragraph{Published} \label{par:sec_rule_pub}
+The security rules for the published section are less complicated.
+\begin{listing}[H]
+  \caption{Security Rules Published}
+  \label{mint:sec_rule_published}
+  \begin{minted}[frame=lines, framesep = 10pt, linenos, firstnumber=24, breaklines, breakbefore=.]{json}
+"published":{
+  "$publishedID":{
+    ".read" : "auth != null",
+    ".write" : "auth != null && root.child('users').child(auth.uid).child('feedback').child($publishedID).exists()",
+    ".validate" : "newData.isString() && root.child('categories/' + newData.val()).exists()"
+  }
+},
+  \end{minted}
+\end{listing}
+
+As the creators of the feedbacks in the published section are fine with other users seeing these feedbacks the only condition for read access is a successful authentication. For the write access it checks if the feedbackID is also in \textit{users/uid/feedback} to only allow authors of that feedback to make it public. The validation checks if the data is a string and is an entry in the category section.
+
+\paragraph{Users}
+Protecting the user data is also vital to ensure trust of the users.
+\begin{listing}[H]
+  \caption{Security Rules User}
+  \label{mint:sec_rule_users}
+  \begin{minted}[frame=lines, framesep = 10pt, linenos, firstnumber=24, breaklines, breakbefore=.]{json}
+"users":{
+  "$userID":{
+  	".read" : "auth != null && $userID === auth.uid",
+  	".write" : "auth != null  && $userID === auth.uid",
+    "feedback" : {
+      "$feedbackID" : {".validate" : "newData.isString() && root.child('categories/' + newData.val()).exists()"
+      }
+    },
+    "$other" : {".validate" : false}
+  }
+}
+  \end{minted}
+\end{listing}
+
+For read and write access it is checked whether the current user is authenticated in general. Furthermore \mintinline{json}|"$userID === auth.uid"| checks if the directory the request is made in belongs to the current users, thus making sure that a user can only read and write in his section.\\
+Similar to the published rules (\ref{par:sec_rule_pub}) the validation of new data checks if the value is an entry from the cateogry section (\ref{par:db_cat}). Like rules for the feedback section data other than a feedback object are rejected and lead to an abortion of the write operation.
+
+\subsection{Managing}
+Firebase offers a web-based console to manage a Firebase project. It can be reached via \url{console.firebase.google.com}
+On the main page it shows crash reports and usage numbers of the apps linked to that project. In the Authentication section the allowed forms of authentication can be set up. In case of Feedbacker this only allows anonymous auth.\\
+In the database section the data is displayed. It also offers the possibility to export the data as JSON or importing existing data as JSON. Here there is also the section to edit the security rules (see section \ref{ssec:sec_rules}).\\
+Other Firebase features (Table \ref{tab_products}, Page \pageref{tab_products}) can also be configured from the console.

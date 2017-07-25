@@ -1,0 +1,27 @@
+\section{Future of the App} \label{sec:future}
+
+At the time of finishing this thesis, the app is functioning in the way described previously. However, there is still room for improvement both in the implementation and in the features of the app. In the following I list some possible improvements.
+
+\subsection{Implementation enhancements}
+\paragraph{Cloud Functions}
+With the current version of the app, writing to and deleting from the database have to be done inside the app for all three database sections (see section \ref{ssec:usage}). This can lead to problems if an operation fails in one of the sections. A more elegant solution would be to perform only one operation in the app and handle the event accordingly inside Firebase's Cloud Functions (Table \ref{table:products}, Page \pageref{table:products}).
+\paragraph{Error Handling}
+At the moment not all errors are caught and handled accordingly. For example, when a user turns off the location services on his device, the Android version of the app will currently show an error screen. Ideally, a future version of the app would handle all errors in a similar way to ensure users the best possible experience.
+
+
+\subsection{Feature Enhancements}
+\paragraph{Pictures}
+In order to make the feedbacks more detailed users could be given the possibility to upload a picture with their feedback. Especially for categories such as nice view or dirty places pictures could portray that feedback better than a text.\\
+Firebase Storage would be an option to implement this.
+\paragraph{Filtering in Maps}
+At the moment it is possible to display the user's own feedbacks or public ones (or both). Future versions could offer more filtering options, like positive/negative or even category-specific (for example to only show places with a positive feedback with the "place to eat/drink" category when searching for a place to have dinner in an unknown city).
+
+
+\subsection{New Features}
+\paragraph{Social}
+The anonymity of users is a left-over that is due to the original idea of developing an app that can be used to identify dangerous places.\\
+A possibility might be to give the app a more social character. Social networks like Facebook, Instagram and Twitter belong to the most popular apps in the world. Concerning Feedbacker itself possible features could be commenting on feedback or following users to get notified when they send new feedback.\\
+This could give businesses like shops and restaurants a possibility to contact people sending positive or negative feedback about their place directly in order to improve its perception.
+\paragraph{Web Platform}
+To visualize feedbacks outside of the app a website could be offered to allow people to display the feedbacks on a bigger screen.\\
+This web platform could also be used by administrators to add categories.

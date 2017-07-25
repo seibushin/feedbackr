@@ -1,0 +1,66 @@
+<resources>
+    <string name="app_name" translatable="false">Feedbacker</string>
+    <string name="title_activity_main">Feedbacker</string>
+
+    <string name="feedback">Feedback</string>
+    <string name="map">Map</string>
+    <string name="profile">Profile</string>
+
+
+    <string name="feedback_success">Feedback Send Successfully!</string>
+    <string name="feedback_explain">Explain your Feedback…</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+
+    <string name="feedback_you_gave">Feedback You Gave</string>
+
+    <string name="feedback_publish">Make Public</string>
+
+    <string name="feedback_positive">Send Positive Feedback</string>
+    <string name="feedback_negative">Send Negative Feedback</string>
+
+    <string name="feedback_send">%s Feedback Send</string>
+    <string name="positive">Positive</string>
+    <string name="negative">Negative</string>
+
+    <string name="locationError">Location Disabled</string>
+
+
+    <string name="content_description_location_error">Location Error</string>
+    <string name="content_description_retry">retry</string>
+    <string name="content_description_calendar">Calendar</string>
+    <string name="content_description_time">time</string>
+    <string name="edit">Edit</string>
+    <string name="switch_kind">Switch Feedback</string>
+    <string name="delete">delete</string>
+    <string name="delete_confirmation">Are you sure you want to delete the feedback? This can\'t be undone.</string>
+
+    <!-- Categories -->
+    <string name="cat_pos_sit">Place to sit</string>
+    <string name="cat_pos_toilet">Public/Clean Toilet</string>
+    <string name="cat_pos_disability_access">Disability Access</string>
+    <string name="cat_pos_wifi">Public Wi-Fi</string>
+    <string name="cat_pos_eat_drink">Place to Eat/Drink</string>
+    <string name="cat_pos_nice_view">Nice View</string>
+    <string name="cat_neg_dark">Dark Place</string>
+    <string name="cat_neg_dirty">Dirty</string>
+    <string name="cat_neg_people">Shady Group of People</string>
+    <string name="cat_neg_walking_friendly">Not Pedestrian Friendly</string>
+    <string name="cat_neg_graffiti">Graffiti</string>
+    <string name="cat_choose">Choose Category</string>
+    <string name="cat_pos_general">General Positive</string>
+    <string name="cat_neg_general">General Negative</string>
+
+
+    <string name="save_changes">Save Feedback?</string>
+    <string name="discard">Discard</string>
+    <string name="save_warning">Unsaved Changes are lost!</string>
+    <string name="show">Show</string>
+    <string name="hide">Hide</string>
+    <string name="show_hide_public">%s Public Feedback</string>
+    <string name="show_hide_private">%s  my Feedback</string>
+    <string name="show_hide">Show/Hide</string>
+    <string name="switch_feedback">Switch Feedback to %s</string>
+    <string name="switch_warning">Switching the Feedback will loose the current Category</string>
+    <string name="switch_word">Switch</string>
+</resources>
