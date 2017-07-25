@@ -6,7 +6,7 @@ This is the appendix of my Bachelor Thesis. It contains the following
 * The XCode Project File
 * An APK of Feedbacker to install on Android Devices
 
-#Notes#
+# Notes #
 
 **Latex**
 I used the minted package for syntax Highlighting of Code. For more Information on that and installation guides visit:
