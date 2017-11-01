@@ -1,4 +1,4 @@
-package com.antonborries.feedbacker.view;
+package de.hhu.cs.feedbackr.view;
 
 import android.content.DialogInterface;
 import android.databinding.DataBindingUtil;
@@ -11,10 +11,10 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 
-import com.antonborries.feedbacker.R;
-import com.antonborries.feedbacker.databinding.DialogSwitchBinding;
-import com.antonborries.feedbacker.model.Feedback;
-import com.antonborries.feedbacker.model.FirebaseHelper;
+import de.hhu.cs.feedbackr.R;
+import de.hhu.cs.feedbackr.databinding.DialogSwitchBinding;
+import de.hhu.cs.feedbackr.model.Feedback;
+import de.hhu.cs.feedbackr.model.FirebaseHelper;
 
 /**
  * Activity for Displaying a Feedback and Editing it

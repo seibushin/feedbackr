@@ -6,13 +6,13 @@
 
         <variable
             name="feedback"
-            type="com.antonborries.feedbacker.model.Feedback"/>
+            type="de.hhu.cs.feedbackr.model.Feedback"/>
     </data>
 
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="com.antonborries.feedbacker.view.FeedbackEditActivity">
+        tools:context="de.hhu.cs.feedbackr.view.FeedbackEditActivity">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"

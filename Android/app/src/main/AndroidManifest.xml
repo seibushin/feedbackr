@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.antonborries.feedbacker">
+          package="de.hhu.cs.feedbackr">
 
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
@@ -16,7 +16,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="com.antonborries.feedbacker.view.MainActivity"
+            android:name="de.hhu.cs.feedbackr.view.MainActivity"
             android:label="@string/title_activity_main"
             android:theme="@style/AppTheme.NoActionBar">
             <intent-filter>
@@ -31,7 +31,7 @@
             android:value="AIzaSyBZT8FMc7OVYbDY-HnzPEwH4H1Ti7wArWI"/>
 
         <activity
-            android:name="com.antonborries.feedbacker.view.FeedbackEditActivity"
+            android:name="de.hhu.cs.feedbackr.view.FeedbackEditActivity"
             android:theme="@style/AppTheme.Detail">
         </activity>
     </application>

@@ -1,4 +1,4 @@
-package com.antonborries.feedbacker.view;
+package de.hhu.cs.feedbackr.view;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -10,9 +10,9 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 
-import com.antonborries.feedbacker.R;
-import com.antonborries.feedbacker.databinding.DialogFeedbackBinding;
-import com.antonborries.feedbacker.model.Feedback;
+import de.hhu.cs.feedbackr.R;
+import de.hhu.cs.feedbackr.databinding.DialogFeedbackBinding;
+import de.hhu.cs.feedbackr.model.Feedback;
 
 /**
  * Shows A Dialog For a Feedback which displays Information

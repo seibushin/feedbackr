@@ -1,27 +1,27 @@
 {
   "project_info": {
-    "project_number": "386122380744",
-    "firebase_url": "https://taschendiebstahl-8d991.firebaseio.com",
-    "project_id": "taschendiebstahl-8d991",
-    "storage_bucket": "taschendiebstahl-8d991.appspot.com"
+    "project_number": "559553411091",
+    "firebase_url": "https://feedbackr-5fc1b.firebaseio.com",
+    "project_id": "feedbackr-5fc1b",
+    "storage_bucket": "feedbackr-5fc1b.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:386122380744:android:d3eeb32f38cd2361",
+        "mobilesdk_app_id": "1:559553411091:android:4286f9fdab121803",
         "android_client_info": {
-          "package_name": "com.antonborries.taschendiebstahl"
+          "package_name": "de.hhu.cs.feedbackr"
         }
       },
       "oauth_client": [
         {
-          "client_id": "386122380744-m6acn75l7cb6sr0jn7ocjs1ded65rkef.apps.googleusercontent.com",
+          "client_id": "559553411091-84su3icg9qbfe0oqhktrggksf6ru4rq8.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
       "api_key": [
         {
-          "current_key": "AIzaSyDO5xhBLBY4HbK4lWbtx0kb-3J-DhLM3F8"
+          "current_key": "AIzaSyAJHR8tgzYRSIyPnzzDaSAZ42AehcfJrf8"
         }
       ],
       "services": {

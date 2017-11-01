@@ -1,8 +1,8 @@
-package com.antonborries.feedbacker.model;
+package de.hhu.cs.feedbackr.model;
 
 import android.content.Context;
 
-import com.antonborries.feedbacker.R;
+import de.hhu.cs.feedbackr.R;
 
 /**
  * Created by antonborries on 26/04/2017.

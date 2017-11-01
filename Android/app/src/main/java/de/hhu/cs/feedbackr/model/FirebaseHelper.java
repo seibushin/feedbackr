@@ -1,4 +1,4 @@
-package com.antonborries.feedbacker.model;
+package de.hhu.cs.feedbackr.model;
 
 import android.util.Log;
 
@@ -23,6 +23,13 @@ public class FirebaseHelper {
      * @param feedback Feedback to Save
      */
     public static void saveFeedback(Feedback feedback) {
+        Log.i("Sve", feedback.toString());
+
+        Log.i("Root", mRootRef.toString() + " " + mRootRef.getKey());
+
+
+        Log.i("Firebase", FirebaseAuth.getInstance().toString());
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             Log.i("NO CURRENT USER TAG", "User is null");

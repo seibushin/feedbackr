@@ -1,11 +1,11 @@
-package com.antonborries.feedbacker.model;
+package de.hhu.cs.feedbackr.model;
 
 
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
 import android.location.Location;
 
-import com.antonborries.feedbacker.BR;
+import de.hhu.cs.feedbackr.BR;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
@@ -168,5 +168,20 @@ public class Feedback extends BaseObservable implements Serializable {
 
     public void setId(String id){
         mId = id;
+    }
+
+    @Override
+    public String toString() {
+        return "Feedback{" +
+                "mLatitude=" + mLatitude +
+                ", mLongitude=" + mLongitude +
+                ", mPositive=" + mPositive +
+                ", mDate=" + mDate +
+                ", mCategory='" + mCategory + '\'' +
+                ", mCity='" + mCity + '\'' +
+                ", mPublish=" + mPublish +
+                ", mDetails='" + mDetails + '\'' +
+                ", mId='" + mId + '\'' +
+                '}';
     }
 }

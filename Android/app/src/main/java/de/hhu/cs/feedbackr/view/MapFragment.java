@@ -1,4 +1,4 @@
-package com.antonborries.feedbacker.view;
+package de.hhu.cs.feedbackr.view;
 
 
 import android.content.Context;
@@ -22,10 +22,10 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
-import com.antonborries.feedbacker.R;
-import com.antonborries.feedbacker.model.CategoryConverter;
-import com.antonborries.feedbacker.model.Feedback;
-import com.antonborries.feedbacker.model.FirebaseHelper;
+import de.hhu.cs.feedbackr.R;
+import de.hhu.cs.feedbackr.model.CategoryConverter;
+import de.hhu.cs.feedbackr.model.Feedback;
+import de.hhu.cs.feedbackr.model.FirebaseHelper;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;

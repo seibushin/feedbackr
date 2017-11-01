@@ -1,8 +1,8 @@
-package com.antonborries.feedbacker.view;
+package de.hhu.cs.feedbackr.view;
 
 import android.support.v7.widget.RecyclerView;
 
-import com.antonborries.feedbacker.databinding.FeedbackHolderBinding;
+import de.hhu.cs.feedbackr.databinding.FeedbackHolderBinding;
 
 /**
  * RecyclerView.ViewHolder for a Feedback Object

@@ -1,0 +1,13 @@
+- Tutorial
+- Stürzt ab, wenn kein GPS an ist
+- Anschalten und auf Kartenansicht wechseln -> Absturz
+
+- crashlog übermitteln (lokal auf dem Gerät speichern?)
+- firebase (google-services.json) anpassen
+- - crashreport api 
+- - - https://firebase.google.com/docs/crash/android#create_your_first_error
+- - Google Account für die Anwendung
+
+
+Firebase
+- Create Account 

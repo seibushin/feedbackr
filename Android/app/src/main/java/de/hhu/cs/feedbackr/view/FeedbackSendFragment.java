@@ -1,4 +1,4 @@
-package com.antonborries.feedbacker.view;
+package de.hhu.cs.feedbackr.view;
 
 
 import android.os.Bundle;
@@ -7,7 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.antonborries.feedbacker.R;
+import de.hhu.cs.feedbackr.R;
 
 
 /**

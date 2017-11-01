@@ -1,4 +1,4 @@
-package com.antonborries.feedbacker.view;
+package de.hhu.cs.feedbackr.view;
 
 import android.databinding.DataBindingUtil;
 import android.support.v7.widget.RecyclerView;
@@ -6,11 +6,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.antonborries.feedbacker.R;
-import com.antonborries.feedbacker.databinding.FeedbackHolderBinding;
-import com.antonborries.feedbacker.model.CategoryConverter;
-import com.antonborries.feedbacker.model.Feedback;
-import com.antonborries.feedbacker.model.FirebaseHelper;
+import de.hhu.cs.feedbackr.R;
+import de.hhu.cs.feedbackr.databinding.FeedbackHolderBinding;
+import de.hhu.cs.feedbackr.model.CategoryConverter;
+import de.hhu.cs.feedbackr.model.Feedback;
+import de.hhu.cs.feedbackr.model.FirebaseHelper;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
