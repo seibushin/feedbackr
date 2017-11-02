@@ -1,0 +1,11 @@
+Firebase
+- Anonymous Auth
+- - nach Neuinstallation bekommt man anderen Auth-Key zugeordnet
+- -> kann dazu führen, dass Feedbacks verloren gehen, da sie von keinem Benutzer bearbeitet werden können
+- Database
+- - benötigt Network Connection
+- -> sonst sind alle Feedbacks die man macht flüchtig und man bekommt keine Feedbacks von anderen angezeigt
+- - Es gibt keine Lokale Kopie der Daten
+- Crash Reporting
+- - Nach dem Einfügen der Dependencies ist das Logging aktiv
+- - Es können zusätzliche Custom Logs erstellt werden

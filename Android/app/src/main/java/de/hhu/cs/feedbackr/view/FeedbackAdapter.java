@@ -64,7 +64,7 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
                             Feedback feedback = dataSnapshot.getValue(Feedback.class);
                             for (Feedback old : mFeedback) {
                                 //Swap the Old Feedback with the new One
-                                if (old.getId().equals(feedback.getId())) {
+                                if (feedback != null && old.getId().equals(feedback.getId())) {
                                     int pos = mFeedback.indexOf(old);
                                     mFeedback.set(pos, feedback);
                                     notifyItemChanged(pos);

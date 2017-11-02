@@ -23,30 +23,28 @@ import android.util.Log;
 import android.view.MenuItem;
 import android.widget.Toast;
 
-import de.hhu.cs.feedbackr.R;
-import de.hhu.cs.feedbackr.model.Feedback;
-import de.hhu.cs.feedbackr.model.FirebaseHelper;
 import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.PendingResult;
-import com.google.android.gms.common.api.ResultCallback;
-import com.google.android.gms.common.api.Status;
+import com.google.android.gms.common.api.ResolvableApiException;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
-import com.google.android.gms.location.LocationSettingsResult;
+import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 
 import java.io.IOException;
 import java.util.Calendar;
 import java.util.List;
 import java.util.Locale;
+
+import de.hhu.cs.feedbackr.R;
+import de.hhu.cs.feedbackr.model.Feedback;
+import de.hhu.cs.feedbackr.model.FirebaseHelper;
 
 public class MainActivity extends AppCompatActivity
 
@@ -262,38 +260,40 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onConnected(@Nullable Bundle bundle) {
         //Set Up Location Listening
-        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(LocationRequest.create().setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY));
-        PendingResult<LocationSettingsResult> result = LocationServices.SettingsApi.checkLocationSettings(mGoogleApiClient, builder.build());
-        result.setResultCallback(new ResultCallback<LocationSettingsResult>() {
-            @Override
-            public void onResult(@NonNull LocationSettingsResult result) {
-                final Status status = result.getStatus();
-                switch (status.getStatusCode()) {
-                    case LocationSettingsStatusCodes.SUCCESS:
-                        //Can Start Location Initialisation
-                        makeLocationInit();
-                        break;
-                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                        // Location settings are not satisfied. But could be fixed by showing the user
-                        // a dialog.
-                        try {
-                            // Show the dialog by calling startResolutionForResult(),
-                            // and check the result in onActivityResult().
-                            status.startResolutionForResult(
-                                    MainActivity.this,
-                                    REQUEST_CHECK_SETTINGS);
-                        } catch (IntentSender.SendIntentException e) {
-                            // Ignore the error.
-                        }
-                        break;
-                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+        LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder()
+                .addLocationRequest(LocationRequest.create().setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY));
+        Task<LocationSettingsResponse> result = LocationServices.getSettingsClient(this).checkLocationSettings(builder.build());
 
-                        break;
+        result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
+            @Override
+            public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
+                try {
+                    task.getResult(ApiException.class);
+                    // Location settings are satisfied
+                    makeLocationInit();
+                } catch (ApiException ex) {
+                    switch (ex.getStatusCode()) {
+                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                            // Location settings are not satisfied. But could be fixed by showing the user
+                            // a dialog
+                            try {
+                                // Show the dialog by calling startResolutionForResult(),
+                                // and check the result in onActivityResult().
+                                // Cast to resolvable
+                                ResolvableApiException resolvable = (ResolvableApiException) ex;
+                                resolvable.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
+                            } catch (IntentSender.SendIntentException | ClassCastException e) {
+                                // Ignore the error.
+                            }
+                            break;
+                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                            // Location settings are not satisfied. However, we have no way to fix
+                            // the settings so we wont show the dialog
+                            break;
+                    }
                 }
             }
         });
-
-
     }
 
     /**
@@ -302,6 +302,7 @@ public class MainActivity extends AppCompatActivity
     private void makeLocationInit() {
         try {
             //Gets Last Known Location and Time
+            //todo switch to FusedLocationProviderClient with Google Play Services 12.0.0
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             mLastUpdateTime = Calendar.getInstance();
             //Start the Location Listening
@@ -344,8 +345,11 @@ public class MainActivity extends AppCompatActivity
      * Stop the Location Updates
      */
     protected void stopLocationUpdates() {
-        LocationServices.FusedLocationApi.removeLocationUpdates(
-                mGoogleApiClient, this);
+        // Check if client is connected
+        if (mGoogleApiClient.isConnected()) {
+            LocationServices.FusedLocationApi.removeLocationUpdates(
+                    mGoogleApiClient, this);
+        }
         mRequestingLocationUpdates = false;
     }
 

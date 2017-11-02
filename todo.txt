@@ -1,13 +1,18 @@
 - Tutorial
+- Map Ansicht, wenn weit herausgezoomt
+- GPS deaktivert, App starten, Abbrechen, OK, Fragment ändert sich nicht
+- - Beim Wechseln zwischen Feedback und Map und zurück dann passt es
+
 - Stürzt ab, wenn kein GPS an ist
+- - Nicht nachstellbar
 - Anschalten und auf Kartenansicht wechseln -> Absturz
-
-- crashlog übermitteln (lokal auf dem Gerät speichern?)
-- firebase (google-services.json) anpassen
-- - crashreport api 
-- - - https://firebase.google.com/docs/crash/android#create_your_first_error
-- - Google Account für die Anwendung
-
+- - Nicht nachstellbar
 
 Firebase
-- Create Account 
+- firebase (google-services.json) anpassen (x)
+- crashreport api
+- - https://firebase.google.com/docs/crash/android#create_your_first_error
+- Create Account (privater Account vorerst!)
+- - Create Projekt 
+- - Enable Anonymous Auth
+- - Enable Database (use anonymous rules)
