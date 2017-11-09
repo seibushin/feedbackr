@@ -2,6 +2,10 @@ package de.hhu.cs.feedbackr.model;
 
 import android.util.Log;
 
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.GeoQuery;
+import com.google.android.gms.location.Geofence;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -25,6 +29,7 @@ public class FirebaseHelper {
     private static final DatabaseReference mFeedbackRef = mRootRef.child("feedback");
     private static final DatabaseReference mPublishedRef = mRootRef.child("published");
     private static final DatabaseReference mUsersRef = mRootRef.child("users");
+    private static final DatabaseReference mGeofireRef = mRootRef.child("geofire");
 
     /**
      * Saves a Feedback to Firebase
@@ -46,6 +51,11 @@ public class FirebaseHelper {
         mUsersRef.child(user.getUid()).child("feedback").child(feedback.getId()).setValue(feedback.getCategory());
         //Save to Feedback Section
         mFeedbackRef.child(feedback.getId()).setValue(feedback);
+
+        // save geofire Location
+        GeoFire geoFire = new GeoFire(mGeofireRef);
+        geoFire.setLocation(feedback.getId(), new GeoLocation(feedback.getLatitude(), feedback.getLongitude()));
+
         if (feedback.isPublished()) {
             //If Feedback is Published Save it in Public Reference with Category to get a ChangeEvent when the Category is changed
             mPublishedRef.child(feedback.getId()).setValue(feedback.getCategory());
@@ -69,6 +79,10 @@ public class FirebaseHelper {
             mPublishedRef.child(feedback.getId()).removeValue();
         }
         mUsersRef.child(user.getUid()).child("feedback").child(feedback.getId()).removeValue();
+
+        // remove geofire
+        GeoFire geoFire = new GeoFire(mGeofireRef);
+        geoFire.removeLocation(feedback.getId());
     }
 
     /**
@@ -83,7 +97,18 @@ public class FirebaseHelper {
         return mFeedbackRef;
     }
 
+    public static List<Feedback> getNearbyFeedback(double lat, double lon) {
+        GeoFire geoFire = new GeoFire(mGeofireRef);
+        List<Feedback> list = new ArrayList<>();
+
+        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(lat, lon), 1.0);
+
+        return list;
+    }
+
     public static List<Feedback> getAllFeedback() {
+        GeoFire geoFire = new GeoFire(mGeofireRef);
+
         List<Feedback> list = new ArrayList<>();
 
         mFeedbackRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -121,5 +146,9 @@ public class FirebaseHelper {
             return null;
         }
         return mUsersRef.child(user.getUid());
+    }
+
+    public static DatabaseReference getGeofire() {
+        return mGeofireRef;
     }
 }
