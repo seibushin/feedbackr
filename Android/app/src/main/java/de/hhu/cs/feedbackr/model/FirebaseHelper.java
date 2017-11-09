@@ -5,6 +5,7 @@ import android.util.Log;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
+import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.location.Geofence;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -54,7 +55,18 @@ public class FirebaseHelper {
 
         // save geofire Location
         GeoFire geoFire = new GeoFire(mGeofireRef);
-        geoFire.setLocation(feedback.getId(), new GeoLocation(feedback.getLatitude(), feedback.getLongitude()));
+        //geoFire.setLocation(feedback.getId(), new GeoLocation(feedback.getLatitude(), feedback.getLongitude()));
+
+        geoFire.setLocation(feedback.getId(), new GeoLocation(feedback.getLatitude(), feedback.getLongitude()), new GeoFire.CompletionListener() {
+            @Override
+            public void onComplete(String key, DatabaseError error) {
+                if (error != null) {
+                    System.err.println("There was an error saving the location to GeoFire: " + error);
+                } else {
+                    System.out.println("Location saved on server successfully!");
+                }
+            }
+        });
 
         if (feedback.isPublished()) {
             //If Feedback is Published Save it in Public Reference with Category to get a ChangeEvent when the Category is changed
@@ -99,9 +111,49 @@ public class FirebaseHelper {
 
     public static List<Feedback> getNearbyFeedback(double lat, double lon) {
         GeoFire geoFire = new GeoFire(mGeofireRef);
-        List<Feedback> list = new ArrayList<>();
+        final List<Feedback> list = new ArrayList<>();
 
-        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(lat, lon), 1.0);
+        double radius = 1.0;
+
+        GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(lat, lon), radius);
+        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+            @Override
+            public void onKeyEntered(String key, GeoLocation location) {
+                mFeedbackRef.child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        list.add(dataSnapshot.getValue(Feedback.class));
+
+                        System.out.println("Nearby: "  + dataSnapshot.getValue(Feedback.class));
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onKeyExited(String key) {
+
+            }
+
+            @Override
+            public void onKeyMoved(String key, GeoLocation location) {
+
+            }
+
+            @Override
+            public void onGeoQueryReady() {
+
+            }
+
+            @Override
+            public void onGeoQueryError(DatabaseError error) {
+
+            }
+        });
 
         return list;
     }

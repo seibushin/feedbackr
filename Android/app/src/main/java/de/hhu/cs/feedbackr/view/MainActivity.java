@@ -163,7 +163,8 @@ public class MainActivity extends AppCompatActivity
      */
     public void sendFeedback(boolean kind) {
         // todo remove
-        FirebaseHelper.getAllFeedback();
+        //FirebaseHelper.getAllFeedback();
+        FirebaseHelper.getNearbyFeedback(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
 
         // todo check for duplicates and merge them
 
