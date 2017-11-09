@@ -162,6 +162,11 @@ public class MainActivity extends AppCompatActivity
      * @param kind Decides whether Feedback is Positive or Negative
      */
     public void sendFeedback(boolean kind) {
+        // todo remove
+        FirebaseHelper.getAllFeedback();
+
+        // todo check for duplicates and merge them
+
         String feedbackId = FirebaseHelper.generateFeedbackID();
 
         //Creates the Feedback

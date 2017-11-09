@@ -4,8 +4,16 @@ import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Created by antonborries on 21/09/16.
@@ -23,6 +31,12 @@ public class FirebaseHelper {
      * @param feedback Feedback to Save
      */
     public static void saveFeedback(Feedback feedback) {
+        // check if similar feedback is nearby
+        // todo
+
+        // ask the user if it is basically the same
+        // todo
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             Log.i("NO CURRENT USER TAG", "User is null");
@@ -67,6 +81,33 @@ public class FirebaseHelper {
 
     public static DatabaseReference getFeedback() {
         return mFeedbackRef;
+    }
+
+    public static List<Feedback> getAllFeedback() {
+        List<Feedback> list = new ArrayList<>();
+
+        mFeedbackRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                Iterator<DataSnapshot> iterator = dataSnapshot.getChildren().iterator();
+
+                // todo try geofire https://github.com/firebase/geofire-java
+
+                while (iterator.hasNext()) {
+                    Feedback f = iterator.next().getValue(Feedback.class);
+                    System.out.println(f);
+                }
+                //System.out.println(dataSnapshot.getValue());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+
+        return list;
     }
 
     public static DatabaseReference getPublished() {

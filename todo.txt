@@ -1,5 +1,8 @@
 - Tutorial
 - Map Ansicht, wenn weit herausgezoomt
+- Gleiches Feedback aggregieren
+- - Beim Senden eines Feedbacks Feedback mit allen vorhandenen Abgleichen
+- - Es gibt keine Serverkomponente also auf dem Client
 - GPS deaktivert, App starten, Abbrechen, OK, Fragment ändert sich nicht
 - - Beim Wechseln zwischen Feedback und Map und zurück dann passt es
 
