@@ -6,6 +6,19 @@
 - GPS deaktivert, App starten, Abbrechen, OK, Fragment ändert sich nicht
 - - Beim Wechseln zwischen Feedback und Map und zurück dann passt es
 
+
+- Feedback view
+- - Direkt speichern
+- - Zurück speichert, wenn Änderungen
+- - Abbrechen, SPeichern entfernen
+
+- Map view
+- - Clustering
+- - 
+
+- Data Storage
+- - local copy
+
 - Stürzt ab, wenn kein GPS an ist
 - - Nicht nachstellbar
 - Anschalten und auf Kartenansicht wechseln -> Absturz

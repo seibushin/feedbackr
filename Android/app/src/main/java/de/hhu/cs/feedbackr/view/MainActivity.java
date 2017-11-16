@@ -162,25 +162,20 @@ public class MainActivity extends AppCompatActivity
      * @param kind Decides whether Feedback is Positive or Negative
      */
     public void sendFeedback(boolean kind) {
-        // todo remove
-        //FirebaseHelper.getAllFeedback();
-        FirebaseHelper.getNearbyFeedback(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-
-        // todo check for duplicates and merge them
-
         String feedbackId = FirebaseHelper.generateFeedbackID();
 
         //Creates the Feedback
         Feedback feedback = new Feedback(mCurrentLocation, mLastUpdateTime, mCurrentCity, kind, feedbackId);
 
         // Saves it in Firebase
-        // this saves the feedback after calling "Positives Feedback senden"
-        // before the user saves the feedback via "Speichern"
-        //FirebaseHelper.saveFeedback(feedback);
+        FirebaseHelper.saveFeedback(feedback);
 
         // Show Success Toast
-        //createToast(String.format(getString(R.string.feedback_send),
-        //        feedback.isPositive() ? getString(R.string.positive) : getString(R.string.negative)), Toast.LENGTH_LONG);
+        createToast(String.format(getString(R.string.feedback_send),
+                feedback.isPositive() ? getString(R.string.positive) : getString(R.string.negative)), Toast.LENGTH_LONG);
+
+        //FirebaseHelper.getRelevantNearbyFeedback(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
+        FirebaseHelper.getRelevantNearbyFeedback(feedback, mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
 
         //Switch to Edit View
         switchToFeedbackDetail(feedback);

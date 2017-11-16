@@ -108,10 +108,17 @@ public class FirebaseHelper {
         return mFeedbackRef;
     }
 
-    public static List<Feedback> getNearbyFeedback(double lat, double lon) {
+    /**
+     * Get all nearby Feedback
+     * @param lat
+     * @param lon
+     * @return
+     */
+    public static List<Feedback> getRelevantNearbyFeedback(final Feedback feedback, double lat, double lon) {
         GeoFire geoFire = new GeoFire(mGeofireRef);
         final List<Feedback> list = new ArrayList<>();
 
+        // get all Feedback in the given radius of the position
         double radius = 1.0;
 
         GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(lat, lon), radius);
@@ -153,6 +160,8 @@ public class FirebaseHelper {
 
             }
         });
+
+        geoQuery.removeAllListeners();
 
         return list;
     }
