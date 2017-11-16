@@ -25,7 +25,6 @@ import java.util.Map;
  */
 
 public class FirebaseHelper {
-
     private static final DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
     private static final DatabaseReference mFeedbackRef = mRootRef.child("feedback");
     private static final DatabaseReference mPublishedRef = mRootRef.child("published");

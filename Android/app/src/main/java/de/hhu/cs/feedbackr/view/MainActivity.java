@@ -172,11 +172,16 @@ public class MainActivity extends AppCompatActivity
 
         //Creates the Feedback
         Feedback feedback = new Feedback(mCurrentLocation, mLastUpdateTime, mCurrentCity, kind, feedbackId);
+
         // Saves it in Firebase
-        FirebaseHelper.saveFeedback(feedback);
-        //Show Success Toast
-        createToast(String.format(getString(R.string.feedback_send),
-                feedback.isPositive() ? getString(R.string.positive) : getString(R.string.negative)), Toast.LENGTH_LONG);
+        // this saves the feedback after calling "Positives Feedback senden"
+        // before the user saves the feedback via "Speichern"
+        //FirebaseHelper.saveFeedback(feedback);
+
+        // Show Success Toast
+        //createToast(String.format(getString(R.string.feedback_send),
+        //        feedback.isPositive() ? getString(R.string.positive) : getString(R.string.negative)), Toast.LENGTH_LONG);
+
         //Switch to Edit View
         switchToFeedbackDetail(feedback);
     }

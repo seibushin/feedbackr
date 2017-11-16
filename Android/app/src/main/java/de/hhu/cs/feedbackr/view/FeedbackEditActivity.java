@@ -10,6 +10,7 @@ import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.databinding.DialogSwitchBinding;
@@ -149,6 +150,11 @@ public class FeedbackEditActivity extends AppCompatActivity {
     private void saveChanges() {
         Feedback feedback = mFeedbackEditFragment.getFeedback();
         FirebaseHelper.saveFeedback(feedback);
+
+        // Show Success Toast
+        Toast.makeText(this, String.format(getString(R.string.feedback_send),
+                feedback.isPositive() ? getString(R.string.positive) : getString(R.string.negative)), Toast.LENGTH_LONG).show();
+
         finish();
     }
 
