@@ -150,7 +150,6 @@ public class FeedbackEditFragment extends Fragment {
             }
         });
 
-
         return view;
     }
 
@@ -160,7 +159,6 @@ public class FeedbackEditFragment extends Fragment {
     public void updateMarker() {
         mMarker.setIcon(BitmapDescriptorFactory.fromBitmap(getBitmap(getContext(), mFeedback.isPositive(), mFeedback.getCategory())));
     }
-
 
     @Override
     public void onResume() {

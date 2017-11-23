@@ -6,18 +6,22 @@
 - GPS deaktivert, App starten, Abbrechen, OK, Fragment ändert sich nicht
 - - Beim Wechseln zwischen Feedback und Map und zurück dann passt es
 
+x- Feedback view
+x- - Direkt speichern
+x- - Zurück speichert, wenn Änderungen
+x- - Abbrechen, SPeichern entfernen
 
-- Feedback view
-- - Direkt speichern
-- - Zurück speichert, wenn Änderungen
-- - Abbrechen, SPeichern entfernen
+- Play Store
+- - 
 
 - Map view
 - - Clustering
 - - 
 
-- Data Storage
-- - local copy
+x- Data Storage
+x- - local copy
+x- -> Firebase persistence (https://firebase.google.com/docs/database/android/offline-capabilities?authuser=0)
+x- - Firebase legt lokale Kopie an und synchronisiert sobald Netzwerk-Verbindung existiert
 
 - Stürzt ab, wenn kein GPS an ist
 - - Nicht nachstellbar
@@ -25,10 +29,10 @@
 - - Nicht nachstellbar
 
 Firebase
-- firebase (google-services.json) anpassen (x)
-- crashreport api
-- - https://firebase.google.com/docs/crash/android#create_your_first_error
-- Create Account (privater Account vorerst!)
-- - Create Projekt 
-- - Enable Anonymous Auth
-- - Enable Database (use anonymous rules)
+x- firebase (google-services.json) anpassen
+x- crashreport api
+x- - https://firebase.google.com/docs/crash/android#create_your_first_error
+x- Create Account (privater Account vorerst!)
+x- - Create Projekt 
+x- - Enable Anonymous Auth
+x- - Enable Database (use anonymous rules)

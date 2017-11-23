@@ -25,7 +25,13 @@ import java.util.Map;
  */
 
 public class FirebaseHelper {
-    private static final DatabaseReference mRootRef = FirebaseDatabase.getInstance().getReference();
+    private static final FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
+    // Static block so set persistence mode to true
+    static {
+        mDatabase.setPersistenceEnabled(true);
+    }
+
+    private static final DatabaseReference mRootRef = mDatabase.getReference();
     private static final DatabaseReference mFeedbackRef = mRootRef.child("feedback");
     private static final DatabaseReference mPublishedRef = mRootRef.child("published");
     private static final DatabaseReference mUsersRef = mRootRef.child("users");
