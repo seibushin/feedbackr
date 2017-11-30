@@ -37,7 +37,6 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.crash.FirebaseCrash;
 
 import java.io.IOException;
@@ -97,11 +96,9 @@ public class MainActivity extends AppCompatActivity
                 .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
                     @Override
                     public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (task.isSuccessful()) {
-                            // sign in successful
-                        } else {
+                        if (!task.isSuccessful()) {
                             // sign in failed
-                            createToast("Authentication failed", Toast.LENGTH_LONG);
+                            createToast(getString(R.string.auth_failed), Toast.LENGTH_LONG);
                             FirebaseCrash.log("Authentication failed - " + task.getException());
                         }
                     }
@@ -157,9 +154,6 @@ public class MainActivity extends AppCompatActivity
         createToast(String.format(getString(R.string.feedback_send),
                 feedback.isPositive() ? getString(R.string.positive) : getString(R.string.negative)), Toast.LENGTH_LONG);
 
-        //FirebaseHelper.getRelevantNearbyFeedback(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-        FirebaseHelper.getRelevantNearbyFeedback(feedback, mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude());
-
         //Switch to Edit View
         switchToFeedbackDetail(feedback);
     }
@@ -193,7 +187,6 @@ public class MainActivity extends AppCompatActivity
             List<Address> addresses = gcd.getFromLocation(mCurrentLocation.getLatitude(), mCurrentLocation.getLongitude(), 1);
             if (addresses != null) {
                 mCurrentCity = addresses.get(0).getLocality();
-
             }
         } catch (IOException ignored) {
         }
@@ -290,8 +283,8 @@ public class MainActivity extends AppCompatActivity
      */
     private void makeLocationInit() {
         try {
-            //Gets Last Known Location and Time
-            //todo switch to FusedLocationProviderClient with Google Play Services 12.0.0
+            // Gets Last Known Location and Time
+            // todo switch to FusedLocationProviderClient with Google Play Services 12.0.0 as stated in the docs
             mCurrentLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             mLastUpdateTime = Calendar.getInstance();
             //Start the Location Listening
@@ -385,7 +378,6 @@ public class MainActivity extends AppCompatActivity
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
         Log.e("Connection error", connectionResult.getErrorMessage());
     }
-
 
     /**
      * Override of onPause
@@ -575,5 +567,4 @@ public class MainActivity extends AppCompatActivity
         }
         return false;
     }
-
 }

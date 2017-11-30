@@ -9,8 +9,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.Toast;
 
 import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.databinding.DialogSwitchBinding;
@@ -44,9 +42,6 @@ public class FeedbackEditActivity extends AppCompatActivity {
 
         mFeedbackEditFragment = FeedbackEditFragment.newInstance((Feedback) getIntent().getExtras().get("Feedback"));
         getSupportFragmentManager().beginTransaction().add(R.id.feedback_detail_frame, mFeedbackEditFragment).commit();
-
-        // get relevant feedback nearby
-        //FirebaseHelper.getRelevantNearbyFeedback(mFeedbackEditFragment..getLatitude(), mCurrentLocation.getLongitude());
     }
 
     /**

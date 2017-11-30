@@ -6,6 +6,7 @@
     <string name="feedback">Feedback</string>
     <string name="map">Karte</string>
     <string name="profile">Profil</string>
+    <string name="auth_failed">Authentifikation fehlgeschlagen</string>
     <string name="save">Speichern</string>
     <string name="feedback_explain">Beschreibe dein Feedback…</string>
     <string name="title_activity_main">Feedbacker</string>

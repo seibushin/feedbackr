@@ -13,6 +13,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.graphics.drawable.DrawableCompat;
 import android.support.v7.widget.AppCompatSpinner;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,6 +24,12 @@ import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.databinding.FragmentFeedbackEditBinding;
 import de.hhu.cs.feedbackr.model.CategoryConverter;
 import de.hhu.cs.feedbackr.model.Feedback;
+import de.hhu.cs.feedbackr.model.FirebaseHelper;
+
+import com.firebase.geofire.GeoFire;
+import com.firebase.geofire.GeoLocation;
+import com.firebase.geofire.GeoQuery;
+import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
@@ -31,6 +38,12 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -45,7 +58,6 @@ public class FeedbackEditFragment extends Fragment {
 
     private ArrayAdapter<CharSequence> mAdapter;
     private AppCompatSpinner mSpinner;
-
 
     public FeedbackEditFragment() {
         // Required empty public constructor
@@ -150,7 +162,67 @@ public class FeedbackEditFragment extends Fragment {
             }
         });
 
+        //updateNearby();
+
         return view;
+    }
+
+    /**
+     * Update the relevant nearby feedbacks
+     *
+     * todo create Adapter
+     * todo display list of relevant feedback
+     */
+    private void updateNearby() {
+        GeoFire geoFire = new GeoFire(FirebaseHelper.getGeofire());
+        final List<Feedback> list = new ArrayList<>();
+
+        // get all Feedback in the given radius of the position
+        double radius = 1.0;
+
+        final GeoQuery geoQuery = geoFire.queryAtLocation(new GeoLocation(mFeedback.getLatitude(), mFeedback.getLongitude()), radius);
+
+        // listeners are async
+        // returns all nearby feedback keys
+        geoQuery.addGeoQueryEventListener(new GeoQueryEventListener() {
+            @Override
+            public void onKeyEntered(String key, GeoLocation location) {
+                // get the actual feedback for the key
+                FirebaseHelper.getFeedback().child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        list.add(dataSnapshot.getValue(Feedback.class));
+                        // check if published
+                        // validate if relevant
+                        // type match, title match, desc match ?
+                        Log.d("Nearby-Feedback", dataSnapshot.getValue(Feedback.class).toString());
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
+            }
+
+            @Override
+            public void onKeyExited(String key) {
+            }
+
+            @Override
+            public void onKeyMoved(String key, GeoLocation location) {
+            }
+
+            @Override
+            public void onGeoQueryReady() {
+                // initial data has been loaded and all events have been triggered
+                geoQuery.removeAllListeners();
+            }
+
+            @Override
+            public void onGeoQueryError(DatabaseError error) {
+                Log.e("GeoFire", error.toString());
+            }
+        });
     }
 
     /**

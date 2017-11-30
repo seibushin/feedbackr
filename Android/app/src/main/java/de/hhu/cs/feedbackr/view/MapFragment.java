@@ -296,8 +296,9 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                         if (feedback != null) {
                             if (feedback.getCity().equals("")) {
 
-                                // NPE for MainActivity.getCityName
+                                // todo NPE for MainActivity.getCityName
                                 feedback.setCity(((MainActivity) getContext()).getCityName(feedback.getLatitude(), feedback.getLongitude()));
+                                // todo check why do we save here?
                                 FirebaseHelper.saveFeedback(feedback);
                             }
                             Marker marker = createMarker(feedback);

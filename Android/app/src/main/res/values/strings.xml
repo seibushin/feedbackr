@@ -6,6 +6,7 @@
     <string name="map">Map</string>
     <string name="profile">Profile</string>
 
+    <string name="auth_failed">Authentication failed</string>
 
     <string name="feedback_success">Feedback Send Successfully!</string>
     <string name="feedback_explain">Explain your Feedback…</string>
