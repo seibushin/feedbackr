@@ -9,7 +9,7 @@
     <string name="auth_failed">Authentifikation fehlgeschlagen</string>
     <string name="save">Speichern</string>
     <string name="feedback_explain">Beschreibe dein Feedback…</string>
-    <string name="title_activity_main">Feedbacker</string>
+    <string name="title_activity_main">Feedbackr</string>
     <string name="feedback_publish">Öffentlich stellen</string>
     <string name="locationError">Standort Deaktiviert</string>
     <string name="feedback_negative">Negatives Feedback senden</string>
