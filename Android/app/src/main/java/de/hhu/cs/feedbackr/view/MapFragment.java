@@ -7,6 +7,8 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -34,13 +36,17 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
+import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 
 
 /**
@@ -294,12 +300,18 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         Feedback feedback = dataSnapshot.getValue(Feedback.class);
                         if (feedback != null) {
+                            // the feedback has no resolved cityname
                             if (feedback.getCity().equals("")) {
-
-                                // todo NPE for MainActivity.getCityName
-                                feedback.setCity(((MainActivity) getContext()).getCityName(feedback.getLatitude(), feedback.getLongitude()));
-                                // todo check why do we save here?
-                                FirebaseHelper.saveFeedback(feedback);
+                                // try to get the cityname
+                                try {
+                                    feedback.setCity(((MainActivity) getContext()).getCityName(feedback.getLatitude(), feedback.getLongitude()));
+                                    // save the cityname
+                                    FirebaseHelper.saveFeedback(feedback);
+                                } catch (NullPointerException npe) {
+                                    // unable to get cityname
+                                    FirebaseCrash.log("unable to resolve unresolved cityname for " + feedback.getId());
+                                    FirebaseCrash.report(npe);
+                                }
                             }
                             Marker marker = createMarker(feedback);
                             if (marker != null) {

@@ -50,4 +50,5 @@
     <string name="switch_feedback">Wechsel Feedback zu %s</string>
     <string name="switch_warning">Wecheln des Feedbacks löscht die aktuelle Kategorie</string>
     <string name="switch_word">Wechseln</string>
+    <string name="noLocation">Kein Standort verfügbar</string>
 </resources>

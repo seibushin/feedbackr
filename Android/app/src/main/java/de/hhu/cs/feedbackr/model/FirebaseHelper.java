@@ -54,8 +54,7 @@ public class FirebaseHelper {
             @Override
             public void onComplete(String key, DatabaseError error) {
                 if (error != null) {
-                    Log.e("", "There was an error saving the location to GeoFire: " + error);
-                    FirebaseCrash.log("There was an error saving the location to GeoFire: " + error);
+                    FirebaseCrash.report(new Throwable("There was an error saving the location to GeoFire: " + error));
                 }
             }
         });

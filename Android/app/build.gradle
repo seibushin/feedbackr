@@ -27,7 +27,7 @@ android {
         applicationId "de.hhu.cs.feedbackr"
         minSdkVersion 16
         targetSdkVersion 25
-        versionCode 3
+        versionCode 4
         versionName "1.0"
         vectorDrawables.useSupportLibrary = true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -44,8 +44,6 @@ android {
         enabled = true
     }
 }
-
-
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
@@ -67,4 +65,3 @@ dependencies {
     testCompile 'junit:junit:4.12'
 }
 apply plugin: 'com.google.gms.google-services'
-

@@ -99,7 +99,8 @@ public class MainActivity extends AppCompatActivity
                         if (!task.isSuccessful()) {
                             // sign in failed
                             createToast(getString(R.string.auth_failed), Toast.LENGTH_LONG);
-                            FirebaseCrash.log("Authentication failed - " + task.getException());
+                            FirebaseCrash.report(new Throwable("Authentication failed - " + task.getException()));
+                            //todo disable send feedback as long as the user is not authenificated
                         }
                     }
                 });
@@ -145,17 +146,23 @@ public class MainActivity extends AppCompatActivity
         String feedbackId = FirebaseHelper.generateFeedbackID();
 
         //Creates the Feedback
-        Feedback feedback = new Feedback(mCurrentLocation, mLastUpdateTime, mCurrentCity, kind, feedbackId);
+        if (mCurrentLocation == null) {
+            createToast(getString(R.string.noLocation), Toast.LENGTH_LONG);
+            FirebaseCrash.report(new Throwable("Try to sendFeedback but currentLocation is null"));
+        } else {
+            // todo change to -> disable feedback button till location available?
+            Feedback feedback = new Feedback(mCurrentLocation, mLastUpdateTime, mCurrentCity, kind, feedbackId);
 
-        // Saves it in Firebase
-        FirebaseHelper.saveFeedback(feedback);
+            // Saves it in Firebase
+            FirebaseHelper.saveFeedback(feedback);
 
-        // Show Success Toast
-        createToast(String.format(getString(R.string.feedback_send),
-                feedback.isPositive() ? getString(R.string.positive) : getString(R.string.negative)), Toast.LENGTH_LONG);
+            // Show Success Toast
+            createToast(String.format(getString(R.string.feedback_send),
+                    feedback.isPositive() ? getString(R.string.positive) : getString(R.string.negative)), Toast.LENGTH_LONG);
 
-        //Switch to Edit View
-        switchToFeedbackDetail(feedback);
+            //Switch to Edit View
+            switchToFeedbackDetail(feedback);
+        }
     }
 
     /**
@@ -192,7 +199,6 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-
     /**
      * Gets the City Name of a Location
      *
@@ -208,10 +214,10 @@ public class MainActivity extends AppCompatActivity
                 return addresses.get(0).getLocality();
             }
         } catch (IOException ignored) {
+            ignored.printStackTrace();
         }
         return "";
     }
-
 
     /**
      * Override of onStart
