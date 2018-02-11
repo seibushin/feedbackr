@@ -22,7 +22,6 @@ android {
         }
     }
     compileSdkVersion 25
-    buildToolsVersion '25.0.3'
     defaultConfig {
         applicationId "de.hhu.cs.feedbackr"
         minSdkVersion 16

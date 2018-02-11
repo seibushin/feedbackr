@@ -48,7 +48,7 @@
     <string name="show_hide_private">Mein Feedback %s</string>
     <string name="show_hide_public">Öffentliches Feedback %s</string>
     <string name="switch_feedback">Wechsel Feedback zu %s</string>
-    <string name="switch_warning">Wecheln des Feedbacks löscht die aktuelle Kategorie</string>
+    <string name="switch_warning">Wechseln des Feedbacks löscht die aktuelle Kategorie</string>
     <string name="switch_word">Wechseln</string>
     <string name="noLocation">Kein Standort verfügbar</string>
 </resources>
