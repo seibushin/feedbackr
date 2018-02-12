@@ -15,8 +15,8 @@
     <string name="feedback_negative">Negatives Feedback senden</string>
     <string name="feedback_positive">Positives Feedback senden</string>
     <string name="feedback_send">%s Feedback gesendet</string>
-    <string name="negative">negatives</string>
-    <string name="positive">positives</string>
+    <string name="negative">Negatives</string>
+    <string name="positive">Positives</string>
     <string name="content_description_calendar">Kalender</string>
     <string name="content_description_location_error">Standort Fehler</string>
     <string name="content_description_retry">Erneut Versuchen</string>

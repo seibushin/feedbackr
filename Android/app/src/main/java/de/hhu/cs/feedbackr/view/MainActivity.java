@@ -503,7 +503,13 @@ public class MainActivity extends AppCompatActivity
                     case Activity.RESULT_OK:
                         //Start Location Listening
                         makeLocationInit();
-                        mLocationError = false;
+
+                        if (mLocationError) {
+                            mLocationError = false;
+
+                            // switch to Feedback buttons
+                            getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, FeedbackSendFragment.newInstance()).commit();
+                        }
                         break;
                     case Activity.RESULT_CANCELED:
                         //Switch to Error
