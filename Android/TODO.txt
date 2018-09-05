@@ -1,0 +1,20 @@
+1. Firebase
+1.1. Regeln
+1.2. Crash Reporting
+
+2. Multithreading
+2.1. Load Feedback in the background, store information
+2.1.1. For the map view
+2.2. Load own feedback on startup? and store
+2.2.1. For feedbacks list
+
+3. Bugfixes
+3.1. Persist Images locally?
+3.2. Dont request all Feedback from the database use geofire to limit radius
+3.2.1. interact with Map position and load new data on demand?
+3.3. Feedback view sometimes does not render completely
+3.3.1. check SupportFragmentManager and load fragment on createView?
+3.4. Add image and stars/rating to the feedback dialog
+
+4. Google Play
+4.1. Upload final version to google play?

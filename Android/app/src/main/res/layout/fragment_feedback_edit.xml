@@ -1,18 +1,18 @@
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        xmlns:tools="http://schemas.android.com/tools">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
 
     <data>
 
         <variable
             name="feedback"
-            type="de.hhu.cs.feedbackr.model.Feedback"/>
+            type="de.hhu.cs.feedbackr.model.Feedback" />
     </data>
 
     <android.support.v4.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:context="de.hhu.cs.feedbackr.view.FeedbackEditActivity">
+        tools:context="de.hhu.cs.feedbackr.view.activity.FeedbackEditActivity">
 
         <android.support.constraint.ConstraintLayout
             android:layout_width="match_parent"
@@ -25,7 +25,7 @@
                 android:orientation="vertical"
                 app:layout_constraintGuide_percent="0.5"
                 tools:layout_editor_absoluteX="192dp"
-                tools:layout_editor_absoluteY="25dp"/>
+                tools:layout_editor_absoluteY="25dp" />
 
             <com.google.android.gms.maps.MapView
                 android:id="@+id/mapViewFeedbackDet"
@@ -34,7 +34,7 @@
                 android:layout_weight="1"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toTopOf="parent"/>
+                app:layout_constraintTop_toTopOf="parent" />
 
             <TextView
                 android:id="@+id/textViewSuccess"
@@ -46,7 +46,7 @@
                 android:visibility="gone"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/mapViewFeedbackDet"/>
+                app:layout_constraintTop_toBottomOf="@+id/mapViewFeedbackDet" />
 
 
             <ImageView
@@ -56,11 +56,12 @@
                 android:layout_marginLeft="16dp"
                 android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
+                android:contentDescription="@string/content_description_calendar"
                 android:tint="@{feedback.positive ? @color/green : @color/red}"
                 app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/textViewSuccess"
-                app:srcCompat="@drawable/ic_calendar_black_24dp"
-                android:contentDescription="@string/content_description_calendar"/>
+                app:srcCompat="@drawable/ic_calendar_black_24dp" />
 
             <TextView
                 android:id="@+id/textViewCalendar"
@@ -72,20 +73,21 @@
                 app:layout_constraintBottom_toBottomOf="@+id/imageViewCalendar"
                 app:layout_constraintLeft_toRightOf="@+id/imageViewCalendar"
                 app:layout_constraintTop_toTopOf="@+id/imageViewCalendar"
-                tools:text="21.09.2016"/>
+                tools:text="21.09.2016" />
 
             <ImageView
                 android:id="@+id/imageViewTime"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="16dp"
-                android:layout_marginStart="16dp"
+                android:layout_marginStart="8dp"
                 android:layout_marginTop="16dp"
+                android:contentDescription="@string/content_description_time"
                 android:tint="@{feedback.positive ? @color/green : @color/red}"
                 app:layout_constraintLeft_toLeftOf="@+id/guideline50V"
+                app:layout_constraintStart_toEndOf="@+id/textViewCalendar"
                 app:layout_constraintTop_toBottomOf="@+id/textViewSuccess"
-                app:srcCompat="@drawable/ic_time_black_24dp"
-                android:contentDescription="@string/content_description_time"/>
+                app:srcCompat="@drawable/ic_time_black_24dp" />
 
             <TextView
                 android:id="@+id/textViewTime"
@@ -97,40 +99,76 @@
                 app:layout_constraintBottom_toBottomOf="@+id/imageViewTime"
                 app:layout_constraintLeft_toRightOf="@+id/imageViewTime"
                 app:layout_constraintTop_toTopOf="@+id/imageViewTime"
-                tools:text="11:05"/>
+                tools:text="11:05" />
 
             <Switch
                 android:id="@+id/switchPublish"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
+                android:layout_marginStart="16dp"
                 android:layout_marginTop="16dp"
-                android:checked="true"
+                android:checked="@={feedback.published}"
                 android:text="@string/feedback_publish"
+                app:layout_constraintEnd_toStartOf="@+id/feedback_photo"
                 app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/imageViewTime"
                 tools:checked="true" />
 
             <!-- TODO: Add hints what switches do-->
 
 
-            <android.support.v7.widget.AppCompatSpinner
-                android:id="@+id/spinner_category"
-                android:layout_width="368dp"
+            <Switch
+                android:id="@+id/switchAttach"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
                 android:layout_marginLeft="16dp"
                 android:layout_marginRight="16dp"
-                android:layout_marginTop="16dp"
-                android:prompt="@string/cat_choose"
-                android:entries="@array/positive_array"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="8dp"
+                android:checked="@{feedback.hasProfile}"
+                android:text="@string/feedback_attach"
+                app:layout_constraintEnd_toStartOf="@+id/feedback_photo"
+                app:layout_constraintHorizontal_bias="0.0"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/switchPublish"
-                android:layout_marginStart="16dp"
-                android:layout_marginEnd="16dp"/>
+                tools:checked="false" />
+
+            <android.support.v7.widget.AppCompatSpinner
+                android:id="@+id/spinner_category"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_marginLeft="16dp"
+                android:layout_marginRight="16dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:entries="@array/positive_array"
+                android:prompt="@string/cat_choose"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/ratingBar" />
+
+            <RatingBar
+                android:id="@+id/ratingBar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="8dp"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="8dp"
+                android:rating="@={feedback.rating}"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/switchAttach" />
 
             <EditText
                 android:id="@+id/editTextMoreInfo"
@@ -150,6 +188,23 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/spinner_category" />
+
+            <ImageView
+                android:id="@+id/feedback_photo"
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="8dp"
+                android:adjustViewBounds="false"
+                android:background="@drawable/ic_photo_camera_black_24dp"
+                android:onClick="showImage"
+                android:scaleType="centerCrop"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintTop_toTopOf="@+id/textViewSuccess"
+                android:layout_marginRight="8dp" />
+
+            <!--android:src="@{feedback.photo}" -->
+
 
         </android.support.constraint.ConstraintLayout>
 

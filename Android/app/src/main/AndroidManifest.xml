@@ -1,13 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="de.hhu.cs.feedbackr">
+    package="de.hhu.cs.feedbackr">
 
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="18" />
 
     <uses-feature
+        android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
         android:glEsVersion="0x00020000"
-        android:required="true"/>
+        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -16,24 +22,43 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name="de.hhu.cs.feedbackr.view.MainActivity"
-            android:label="@string/title_activity_main"
-            android:theme="@style/AppTheme.NoActionBar">
+            android:name="de.hhu.cs.feedbackr.view.activity.MainActivity"
+            android:label="@string/title_activity_main">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
+                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER"/>
+                <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBZT8FMc7OVYbDY-HnzPEwH4H1Ti7wArWI"/>
+            android:value="AIzaSyBZT8FMc7OVYbDY-HnzPEwH4H1Ti7wArWI" />
+
+        <activity android:name="de.hhu.cs.feedbackr.view.activity.FeedbackEditActivity"
+            android:label="@string/title_activity_main"
+            android:parentActivityName=".view.activity.MainActivity"/>
 
         <activity
-            android:name="de.hhu.cs.feedbackr.view.FeedbackEditActivity"
-            android:theme="@style/AppTheme.Detail">
-        </activity>
+            android:name="de.hhu.cs.feedbackr.view.activity.ProfileActivity"
+            android:label="@string/menu_profile"
+            android:parentActivityName=".view.activity.MainActivity"></activity>
+
+        <activity
+            android:name="de.hhu.cs.feedbackr.view.activity.AboutActivity"
+            android:label="@string/menu_about"
+            android:parentActivityName=".view.activity.MainActivity"></activity>
+
+        <provider
+            android:name="android.support.v4.content.FileProvider"
+            android:authorities="de.hhu.cs.feedbackr.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths"></meta-data>
+        </provider>
+
     </application>
 
 </manifest>

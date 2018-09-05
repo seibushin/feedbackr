@@ -1,4 +1,4 @@
-package de.hhu.cs.feedbackr.view;
+package de.hhu.cs.feedbackr.view.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -7,19 +7,17 @@ import android.content.pm.PackageManager;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
-import android.support.design.widget.AppBarLayout;
 import android.support.design.widget.BottomNavigationView;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
 
@@ -33,11 +31,12 @@ import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.LocationSettingsRequest;
 import com.google.android.gms.location.LocationSettingsResponse;
 import com.google.android.gms.location.LocationSettingsStatusCodes;
-import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.crash.FirebaseCrash;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.ValueEventListener;
 
 import java.io.IOException;
 import java.util.Calendar;
@@ -45,8 +44,13 @@ import java.util.List;
 import java.util.Locale;
 
 import de.hhu.cs.feedbackr.R;
+import de.hhu.cs.feedbackr.firebase.FirebaseHelper;
 import de.hhu.cs.feedbackr.model.Feedback;
-import de.hhu.cs.feedbackr.model.FirebaseHelper;
+import de.hhu.cs.feedbackr.model.Profile;
+import de.hhu.cs.feedbackr.view.fragment.FeedbackSendFragment;
+import de.hhu.cs.feedbackr.view.fragment.FeedbacksFragment;
+import de.hhu.cs.feedbackr.view.fragment.LocationErrorFragment;
+import de.hhu.cs.feedbackr.view.fragment.MapFragment;
 
 public class MainActivity extends AppCompatActivity
 
@@ -72,7 +76,6 @@ public class MainActivity extends AppCompatActivity
     private String mCurrentCity = "";
     private boolean mRequestingLocationUpdates;
 
-
     private boolean mLocationError;
 
     /**
@@ -86,42 +89,83 @@ public class MainActivity extends AppCompatActivity
 
         //Sets Up View
         setContentView(R.layout.activity_main);
-        Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
+        Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
         //Authenticates User Anonymously for Firebase Rules
         final FirebaseAuth auth = FirebaseAuth.getInstance();
 
+        //Initializes the Bottom Bar
+        bottomBar = findViewById(R.id.bottom_navigation);
+        bottomBar.setOnNavigationItemSelectedListener(this);
+
+        getSupportFragmentManager().beginTransaction().add(R.id.main_frame, new FeedbackSendFragment(), "SEND").commit();
+
         auth.signInAnonymously()
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        if (!task.isSuccessful()) {
-                            // sign in failed
-                            createToast(getString(R.string.auth_failed), Toast.LENGTH_LONG);
-                            FirebaseCrash.report(new Throwable("Authentication failed - " + task.getException()));
-                            //todo disable send feedback as long as the user is not authenificated
-                        }
+                .addOnCompleteListener(this, task -> {
+                    if (!task.isSuccessful()) {
+                        System.out.println("LOGIN FAILED");
+                        // sign in failed
+                        createToast(getString(R.string.auth_failed), Toast.LENGTH_LONG);
+                        FirebaseCrash.report(new Throwable("Authentication failed - " + task.getException()));
+                        //todo disable send feedback as long as the user is not authenificated
+                    } else {
+                        getProfile();
                     }
                 });
-
-        //Coloring the StatusBar if Version is New Enough
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            getWindow().setStatusBarColor(ContextCompat.getColor(this, R.color.colorPrimaryDark));
-        }
-
-        //Shows the Button Fragment
-        getSupportFragmentManager().beginTransaction().add(R.id.main_frame, FeedbackSendFragment.newInstance()).commit();
 
         buildGoogleApiClient();
 
         updateValuesFromBundle(savedInstanceState);
+    }
 
-        //Initializes the Bottom Bar
-        BottomNavigationView bottomBar = (BottomNavigationView) findViewById(R.id.bottom_navigation);
-        bottomBar.setOnNavigationItemSelectedListener(this);
-        MenuItem selectItem = bottomBar.getMenu().findItem(mBottomBarPosition);
-        onNavigationItemSelected(selectItem != null ? selectItem : bottomBar.getMenu().getItem(0));
+    private BottomNavigationView bottomBar;
+
+    private void getProfile() {
+        // todo create isNew boolean instead and use empty profile for the initial object
+        if (Profile.getInstance() == null) {
+            FirebaseHelper.getProfileRef().addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    Profile.setInstanceProfile(dataSnapshot.getValue(Profile.class));
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    System.out.println("The read failed: " + databaseError.getCode());
+                }
+            });
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.appbar, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        //Resets the Toolbar to Expanded
+        //((AppBarLayout) findViewById(R.id.main_appbar)).setExpanded(true);
+
+        Intent intent = null;
+
+        // Handle navigation view item clicks here.
+        switch (item.getItemId()) {
+            case R.id.profile:
+                intent = new Intent(this, ProfileActivity.class);
+                break;
+            case R.id.about:
+                intent = new Intent(this, AboutActivity.class);
+                break;
+        }
+
+        if (intent != null) {
+            startActivity(intent);
+        }
+
+        return false;
     }
 
     /**
@@ -252,33 +296,30 @@ public class MainActivity extends AppCompatActivity
                 .addLocationRequest(LocationRequest.create().setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY));
         Task<LocationSettingsResponse> result = LocationServices.getSettingsClient(this).checkLocationSettings(builder.build());
 
-        result.addOnCompleteListener(new OnCompleteListener<LocationSettingsResponse>() {
-            @Override
-            public void onComplete(@NonNull Task<LocationSettingsResponse> task) {
-                try {
-                    task.getResult(ApiException.class);
-                    // Location settings are satisfied
-                    makeLocationInit();
-                } catch (ApiException ex) {
-                    switch (ex.getStatusCode()) {
-                        case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
-                            // Location settings are not satisfied. But could be fixed by showing the user
-                            // a dialog
-                            try {
-                                // Show the dialog by calling startResolutionForResult(),
-                                // and check the result in onActivityResult().
-                                // Cast to resolvable
-                                ResolvableApiException resolvable = (ResolvableApiException) ex;
-                                resolvable.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
-                            } catch (IntentSender.SendIntentException | ClassCastException e) {
-                                // Ignore the error.
-                            }
-                            break;
-                        case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
-                            // Location settings are not satisfied. However, we have no way to fix
-                            // the settings so we wont show the dialog
-                            break;
-                    }
+        result.addOnCompleteListener(task -> {
+            try {
+                task.getResult(ApiException.class);
+                // Location settings are satisfied
+                makeLocationInit();
+            } catch (ApiException ex) {
+                switch (ex.getStatusCode()) {
+                    case LocationSettingsStatusCodes.RESOLUTION_REQUIRED:
+                        // Location settings are not satisfied. But could be fixed by showing the user
+                        // a dialog
+                        try {
+                            // Show the dialog by calling startResolutionForResult(),
+                            // and check the result in onActivityResult().
+                            // Cast to resolvable
+                            ResolvableApiException resolvable = (ResolvableApiException) ex;
+                            resolvable.startResolutionForResult(MainActivity.this, REQUEST_CHECK_SETTINGS);
+                        } catch (IntentSender.SendIntentException | ClassCastException e) {
+                            // Ignore the error.
+                        }
+                        break;
+                    case LocationSettingsStatusCodes.SETTINGS_CHANGE_UNAVAILABLE:
+                        // Location settings are not satisfied. However, we have no way to fix
+                        // the settings so we wont show the dialog
+                        break;
                 }
             }
         });
@@ -358,10 +399,19 @@ public class MainActivity extends AppCompatActivity
      */
     private void switchToErrorFragment() {
         mLocationError = true;
-        Fragment fragment = LocationErrorFragment.newInstance();
-        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-        ft.replace(R.id.main_frame, fragment);
-        ft.commit();
+
+        FragmentTransaction rm = getSupportFragmentManager().beginTransaction();
+        for (Fragment old : getSupportFragmentManager().getFragments()) {
+            rm.hide(old);
+        }
+
+        Fragment fragment = getSupportFragmentManager().findFragmentByTag("ERROR");
+        if (fragment == null) {
+            rm.add(R.id.main_frame, new LocationErrorFragment(), "ERROR");
+        } else {
+            rm.show(fragment);
+        }
+        rm.commit();
     }
 
     /**
@@ -508,7 +558,7 @@ public class MainActivity extends AppCompatActivity
                             mLocationError = false;
 
                             // switch to Feedback buttons
-                            getSupportFragmentManager().beginTransaction().replace(R.id.main_frame, FeedbackSendFragment.newInstance()).commit();
+                            bottomBar.setSelectedItemId(R.id.bottom_feedback);
                         }
                         break;
                     case Activity.RESULT_CANCELED:
@@ -550,33 +600,42 @@ public class MainActivity extends AppCompatActivity
      */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        //Resets the Toolbar to Expanded
-        ((AppBarLayout) findViewById(R.id.main_appbar)).setExpanded(true);
-        mBottomBarPosition = item.getItemId();
-        if (!mLocationError) {
-            Fragment fragment = null;
-            switch (item.getItemId()) {
-                case R.id.bottom_feedback:
-                    //Switch to Feedback Buttons
-                    fragment = FeedbackSendFragment.newInstance();
-                    break;
-                case R.id.bottom_map:
-                    //Switch to Map Fragment
-                    fragment = MapFragment.newInstance();
-                    break;
-                case R.id.bottom_profile:
-                    //Switch to Profile Fragment
-                    fragment = ProfileFragment.newInstance();
-                    break;
-            }
-            if (fragment != null) {
-                //Switch to Wanted Fragment
-                FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-                ft.replace(R.id.main_frame, fragment);
-                ft.commit();
-                return true;
-            }
+        Fragment fragment;
+
+        FragmentTransaction rm = getSupportFragmentManager().beginTransaction();
+        for (Fragment old : getSupportFragmentManager().getFragments()) {
+            rm.hide(old);
         }
+
+        switch (item.getItemId()) {
+            case R.id.bottom_feedback:
+                fragment = getSupportFragmentManager().findFragmentByTag("SEND");
+                if (fragment == null) {
+                    rm.add(R.id.main_frame, new FeedbackSendFragment(), "SEND");
+                } else {
+                    rm.show(fragment);
+                }
+                break;
+            case R.id.bottom_map:
+                fragment = getSupportFragmentManager().findFragmentByTag("MAP");
+                if (fragment == null) {
+                    rm.add(R.id.main_frame, new MapFragment(), "MAP");
+                } else {
+                    rm.show(fragment);
+                }
+                break;
+            case R.id.bottom_profile:
+                fragment = getSupportFragmentManager().findFragmentByTag("FEEDBACKS");
+                if (fragment == null) {
+                    rm.add(R.id.main_frame, new FeedbacksFragment(), "FEEDBACKS");
+                } else {
+                    rm.show(fragment);
+                }
+                break;
+        }
+        rm.commit();
+
+        item.setChecked(true);
         return false;
     }
 }

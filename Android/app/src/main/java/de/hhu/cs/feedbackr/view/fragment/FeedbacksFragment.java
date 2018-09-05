@@ -1,4 +1,4 @@
-package de.hhu.cs.feedbackr.view;
+package de.hhu.cs.feedbackr.view.fragment;
 
 
 import android.os.Bundle;
@@ -12,26 +12,25 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import de.hhu.cs.feedbackr.R;
+import de.hhu.cs.feedbackr.view.FeedbackAdapter;
 
 
 /**
  * A Fragment to Display the Profile Information
  */
-public class ProfileFragment extends Fragment {
+public class FeedbacksFragment extends Fragment {
 
     private RecyclerView mFeedbackLayout;
 
-
-    //USe ProfileFragment.newInstance() instead
-    public ProfileFragment() {
+    public FeedbacksFragment() {
         // Required empty public constructor
     }
 
-    public static ProfileFragment newInstance() {
-
-        return new ProfileFragment();
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        System.out.println("CREATE");
     }
-
 
     /**
      * Creates the View
@@ -45,9 +44,9 @@ public class ProfileFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        View view = inflater.inflate(R.layout.fragment_profile, container, false);
+        View view = inflater.inflate(R.layout.fragment_feedbacks, container, false);
 
-        mFeedbackLayout = (RecyclerView) view.findViewById(R.id.profile_feedback);
+        mFeedbackLayout = view.findViewById(R.id.profile_feedback);
 
         return view;
     }
@@ -56,9 +55,11 @@ public class ProfileFragment extends Fragment {
      * Initializes the RecyclerView
      */
     private void getFeedbackList() {
-        mFeedbackLayout.setAdapter(new FeedbackAdapter());
+        // todo create tabLayout
+        // then we dont need to hold a singleton since the tabLayout will create the view only once
+        mFeedbackLayout.setAdapter(FeedbackAdapter.getInstance());
         mFeedbackLayout.setNestedScrollingEnabled(true);
-        mFeedbackLayout.setLayoutManager(new LinearLayoutManager(getActivity(), LinearLayoutManager.VERTICAL, true));
+        mFeedbackLayout.setLayoutManager(new LinearLayoutManager(getActivity()));
         mFeedbackLayout.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
     }
 
@@ -67,5 +68,4 @@ public class ProfileFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         getFeedbackList();
     }
-
 }

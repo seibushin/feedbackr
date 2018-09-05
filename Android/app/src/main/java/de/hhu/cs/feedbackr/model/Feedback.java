@@ -3,7 +3,12 @@ package de.hhu.cs.feedbackr.model;
 
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
+import android.databinding.BindingAdapter;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
+import android.widget.ImageView;
 
 import de.hhu.cs.feedbackr.BR;
 import com.google.firebase.database.Exclude;
@@ -12,8 +17,10 @@ import com.google.firebase.database.IgnoreExtraProperties;
 import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Locale;
+import java.util.Objects;
 
 /**
  * <p>
@@ -25,13 +32,18 @@ public class Feedback extends BaseObservable implements Serializable {
     private double mLatitude;
     private double mLongitude;
     private boolean mPositive;
-    private long mDate;
+    private Long mDate;
     private String mCategory;
     private String mCity;
     private boolean mPublish;
     private String mDetails;
+    private float mRating;
+    private boolean mHasPhoto;
+    transient private Bitmap mPhoto;
 
     private String mId;
+
+    private Profile mProfile;
 
     /**
      * Empty Constructor for Firebase
@@ -54,7 +66,7 @@ public class Feedback extends BaseObservable implements Serializable {
         setCity(city);
         setPositive(kind);
         mDetails = "";
-        mPublish = false;
+        mPublish = true;
         mCategory = CategoryConverter.getDefault(kind);
 
         setId(id);
@@ -99,8 +111,9 @@ public class Feedback extends BaseObservable implements Serializable {
         return mPublish;
     }
 
-    public void setPublished(boolean publish) {
-        mPublish = publish;
+    @Bindable
+    public void setPublished(boolean published) {
+        mPublish = published;
         notifyPropertyChanged(BR.published);
     }
 
@@ -125,7 +138,7 @@ public class Feedback extends BaseObservable implements Serializable {
      * @return current Date
      */
     @SuppressWarnings("unused")
-    public long getDate() {
+    public Long getDate() {
         return mDate;
     }
 
@@ -161,6 +174,10 @@ public class Feedback extends BaseObservable implements Serializable {
         return df.format(mDate);
     }
 
+    @Exclude
+    public boolean hasProfile() {
+        return mProfile != null;
+    }
 
     public String getId() {
         return mId;
@@ -168,6 +185,54 @@ public class Feedback extends BaseObservable implements Serializable {
 
     public void setId(String id){
         mId = id;
+    }
+
+    public Profile getmProfile() {
+        return mProfile;
+    }
+
+    public void setmProfile(Profile mProfile) {
+        this.mProfile = mProfile;
+    }
+
+    public float getRating() {
+        return mRating;
+    }
+
+    public void setRating(float rating) {
+        this.mRating = rating;
+    }
+
+    public boolean isHasPhoto() {
+        return mHasPhoto;
+    }
+
+    public void setHasPhoto(boolean mHasPhoto) {
+        this.mHasPhoto = mHasPhoto;
+    }
+
+    @Exclude
+    public Bitmap getPhoto() {
+        System.out.println("Feedback Image: " + mPhoto);
+        return mPhoto;
+    }
+
+    @Exclude
+    public void setPhoto(Bitmap photo) {
+        System.out.println("new Photo " + photo);
+        this.mPhoto = photo;
+        if (this.mPhoto != null) {
+            this.mHasPhoto = true;
+        } else {
+            this.mHasPhoto= false;
+        }
+    }
+
+    @BindingAdapter("android:src")
+    public static void loadImage(ImageView view, Bitmap bitmap) {
+        System.out.println("BITMAP:" + bitmap);
+        System.out.println(view);
+        view.setImageBitmap(bitmap);
     }
 
     @Override
@@ -182,6 +247,20 @@ public class Feedback extends BaseObservable implements Serializable {
                 ", mPublish=" + mPublish +
                 ", mDetails='" + mDetails + '\'' +
                 ", mId='" + mId + '\'' +
+                ", mProfile='" + mProfile + '\'' +
+                ", mRating=" + mRating +
+                ", mHasPhoto=" + mHasPhoto +
                 '}';
+    }
+
+    @Override
+    public int hashCode() {
+        Object[] id = {mId};
+        return  Arrays.hashCode(id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return mId.equals(((Feedback) obj).mId);
     }
 }

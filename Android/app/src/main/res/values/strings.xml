@@ -4,7 +4,7 @@
 
     <string name="feedback">Feedback</string>
     <string name="map">Map</string>
-    <string name="profile">Profile</string>
+    <string name="feedbacks">Feedbacks</string>
 
     <string name="auth_failed">Authentication failed</string>
 
@@ -12,8 +12,6 @@
     <string name="feedback_explain">Explain your Feedback…</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
-
-    <string name="feedback_you_gave">Feedback You Gave</string>
 
     <string name="feedback_publish">Make Public</string>
 
@@ -65,4 +63,28 @@
     <string name="switch_warning">Switching the Feedback will loose the current Category</string>
     <string name="switch_word">Switch</string>
     <string name="noLocation">No Location available</string>
+
+    <string name="menu_profile">Profile</string>
+    <string name="menu_about">About</string>
+
+    <string name="license">License</string>
+    <string name="ok">OK</string>
+
+    <string name="profile_attach">Always attach profile</string>
+    <string name="profile_gender">Gender</string>
+    <string name="profile_gender_m">Male</string>
+    <string name="profile_gender_f">Female</string>
+    <string name="profile_gender_mf">None</string>
+    <string name="profile_age">Age</string>
+
+    <string name="feedback_attach">Attach profile</string>
+    <string name="dialog_image_title">Image for the feedback</string>
+    <string name="remove_image">Remove Image</string>
+    <string name="remove_image_pos">remove</string>
+    <string name="remove_image_neg">cancel</string>
+
+    <string name="attach_profile_no_profile">No Profile</string>
+    <string name="attach_profile_no_proile_desc">Please edit your profile to be able to attach it.</string>
+    <string name="show_hide_postive">%s positive Feedback</string>
+    <string name="show_hide_negative">%s negative Feedback</string>
 </resources>

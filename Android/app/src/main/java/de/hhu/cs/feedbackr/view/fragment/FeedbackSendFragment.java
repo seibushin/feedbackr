@@ -1,13 +1,19 @@
-package de.hhu.cs.feedbackr.view;
+package de.hhu.cs.feedbackr.view.fragment;
 
 
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.BitmapDrawable;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 
 import de.hhu.cs.feedbackr.R;
+import de.hhu.cs.feedbackr.view.activity.MainActivity;
 
 
 /**
@@ -15,20 +21,8 @@ import de.hhu.cs.feedbackr.R;
  */
 public class FeedbackSendFragment extends Fragment {
 
-    /**
-     * Use FeedbackSendFragment.newInstance() instead
-     */
     public FeedbackSendFragment() {
         // Required empty public constructor
-    }
-
-    /**
-     * Creates a new Instance of the Fragment
-     *
-     * @return Instance of the FeedbackSendFragment
-     */
-    public static FeedbackSendFragment newInstance() {
-        return new FeedbackSendFragment();
     }
 
     /**
@@ -44,19 +38,34 @@ public class FeedbackSendFragment extends Fragment {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_feedback_send, container, false);
-        view.findViewById(R.id.buttonPositive).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+
+        view.findViewById(R.id.posneg).setOnTouchListener((View v, MotionEvent event) -> {
+            ImageView imageView = ((ImageView) v);
+            Bitmap bitmap = ((BitmapDrawable) imageView.getDrawable()).getBitmap();
+
+            // hint only scale proportional
+            int imageW = imageView.getWidth();
+            int bitmapW = bitmap.getWidth();
+
+            double scale = (double) bitmapW / imageW;
+
+            int x = (int) Math.floor(event.getX() * scale);
+            int  y = (int) Math.floor(event.getY() * scale);
+
+            int pixel = bitmap.getPixel(x, y);
+
+            int green = Color.green(pixel);
+            int red = Color.red(pixel);
+
+            if (green > 150) {
                 ((MainActivity) getActivity()).sendFeedback(true);
-            }
-        });
-        view.findViewById(R.id.buttonNegative).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
+            } else if (red > 150) {
                 ((MainActivity) getActivity()).sendFeedback(false);
             }
+
+            return v.performClick();
         });
+
         return view;
     }
-
 }

@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feedback_success">Gefahr erfolgreich gemeldet!</string>
-    <string name="feedback_you_gave">Gesendetes Feedback</string>
     <string name="cancel">Abbrechen</string>
     <string name="feedback">Feedback</string>
     <string name="map">Karte</string>
-    <string name="profile">Profil</string>
+    <string name="feedbacks">Feedbacks</string>
     <string name="auth_failed">Authentifikation fehlgeschlagen</string>
     <string name="save">Speichern</string>
     <string name="feedback_explain">Beschreibe dein Feedback…</string>
@@ -51,4 +50,24 @@
     <string name="switch_warning">Wechseln des Feedbacks löscht die aktuelle Kategorie</string>
     <string name="switch_word">Wechseln</string>
     <string name="noLocation">Kein Standort verfügbar</string>
+
+    <string name="menu_profile">Profil</string>
+    <string name="menu_about">About</string>
+
+    <string name="license">Lizenzen</string>
+    <string name="ok">OK</string>
+
+    <string name="profile_attach">Profil immer anhängen</string>
+    <string name="profile_gender">Geschlecht</string>
+    <string name="profile_gender_m">Mann</string>
+    <string name="profile_gender_f">Frau</string>
+    <string name="profile_gender_mf">Kein</string>
+    <string name="profile_age">Alter</string>
+
+    <string name="feedback_attach">Profil anhängen</string>
+    <string name="dialog_image_title">Bild zum Feedback</string>
+    <string name="attach_profile_no_profile">Kein Profil</string>
+    <string name="attach_profile_no_proile_desc">Bitte bearbeite dein Profil um es anhängen zu können.</string>
+    <string name="show_hide_postive">%s positives Feedback</string>
+    <string name="show_hide_negative">%s negatives Feedback</string>
 </resources>

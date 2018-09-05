@@ -1,4 +1,4 @@
-package de.hhu.cs.feedbackr.model;
+package de.hhu.cs.feedbackr.firebase;
 
 import android.util.Log;
 
@@ -10,6 +10,9 @@ import com.google.firebase.crash.FirebaseCrash;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+
+import de.hhu.cs.feedbackr.model.Feedback;
+import de.hhu.cs.feedbackr.model.Profile;
 
 /**
  * Created by antonborries on 21/09/16.
@@ -25,7 +28,6 @@ public class FirebaseHelper {
 
     private static final DatabaseReference mRootRef = mDatabase.getReference();
     private static final DatabaseReference mFeedbackRef = mRootRef.child("feedback");
-    private static final DatabaseReference mPublishedRef = mRootRef.child("published");
     private static final DatabaseReference mUsersRef = mRootRef.child("users");
     private static final DatabaseReference mGeofireRef = mRootRef.child("geofire");
 
@@ -35,6 +37,9 @@ public class FirebaseHelper {
      * @param feedback Feedback to Save
      */
     public static void saveFeedback(Feedback feedback) {
+        System.out.println("SAVE FEEDBACK");
+        System.out.println(feedback);
+
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
             Log.i("NO CURRENT USER TAG", "User is null");
@@ -50,20 +55,27 @@ public class FirebaseHelper {
         // save geofire Location
         GeoFire geoFire = new GeoFire(mGeofireRef);
 
-        geoFire.setLocation(feedback.getId(), new GeoLocation(feedback.getLatitude(), feedback.getLongitude()), new GeoFire.CompletionListener() {
-            @Override
-            public void onComplete(String key, DatabaseError error) {
-                if (error != null) {
-                    FirebaseCrash.report(new Throwable("There was an error saving the location to GeoFire: " + error));
-                }
+        geoFire.setLocation(feedback.getId(), new GeoLocation(feedback.getLatitude(), feedback.getLongitude()), (key, error) -> {
+            if (error != null) {
+                FirebaseCrash.report(new Throwable("There was an error saving the location to GeoFire: " + error));
             }
         });
 
-        if (feedback.isPublished()) {
-            //If Feedback is Published Save it in Public Reference with Category to get a ChangeEvent when the Category is changed
-            mPublishedRef.child(feedback.getId()).setValue(feedback.getCategory());
-        } else {
-            mPublishedRef.child(feedback.getId()).removeValue();
+        FirebaseStorageHelper.uploadImage(feedback);
+    }
+
+    /**
+     *
+     * @param profile
+     */
+    public static void saveProfile(Profile profile) {
+        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+
+        if (user != null) {
+            System.out.println("SAVE PROFILE for " + user.getUid());
+            System.out.println(profile);
+
+            mUsersRef.child(user.getUid()).child("profile").setValue(profile);
         }
     }
 
@@ -79,9 +91,6 @@ public class FirebaseHelper {
             return;
         }
         mFeedbackRef.child(feedback.getId()).removeValue();
-        if (feedback.isPublished()) {
-            mPublishedRef.child(feedback.getId()).removeValue();
-        }
         mUsersRef.child(user.getUid()).child("feedback").child(feedback.getId()).removeValue();
 
         // remove geofire
@@ -102,10 +111,6 @@ public class FirebaseHelper {
         return mFeedbackRef;
     }
 
-    public static DatabaseReference getPublished() {
-        return mPublishedRef;
-    }
-
     public static DatabaseReference getUserRef() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
@@ -117,5 +122,14 @@ public class FirebaseHelper {
 
     public static DatabaseReference getGeofire() {
         return mGeofireRef;
+    }
+
+    public static DatabaseReference getProfileRef() {
+        DatabaseReference user = getUserRef();
+        if (user != null) {
+            System.out.println(user.child("profile").toString());
+            return user.child("profile");
+        }
+        return null;
     }
 }

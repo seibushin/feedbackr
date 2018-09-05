@@ -4,7 +4,6 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-
         <variable
             name="feedback"
             type="de.hhu.cs.feedbackr.model.Feedback"/>

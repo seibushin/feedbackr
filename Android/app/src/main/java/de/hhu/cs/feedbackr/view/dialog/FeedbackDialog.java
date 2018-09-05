@@ -1,4 +1,4 @@
-package de.hhu.cs.feedbackr.view;
+package de.hhu.cs.feedbackr.view.dialog;
 
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -13,6 +13,7 @@ import android.view.LayoutInflater;
 import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.databinding.DialogFeedbackBinding;
 import de.hhu.cs.feedbackr.model.Feedback;
+import de.hhu.cs.feedbackr.view.activity.MainActivity;
 
 /**
  * Shows A Dialog For a Feedback which displays Information
