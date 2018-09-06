@@ -18,3 +18,21 @@
 
 4. Google Play
 4.1. Upload final version to google play?
+
+2018-09-06
+MapView
+- Radius max 3km
+- move center on ActionButton click
+- LRU structure to store Feedbacks
+
+Feedbacks
+- Add UserRef to the Feedback (not FeedbackRef to the user) - 1:N
+- Get newest Feedback (orderByChild("date").last())
+
+About
+- change Layout (dont use WebView) ! performance
+
+Profil
+- Create user on first launch? or on first feedback submit
+- the userId is stored on the device from firebase!?
+- - userId does not need to be pushed to the firebase we can still query for Feedbacks using the local firebaes userId

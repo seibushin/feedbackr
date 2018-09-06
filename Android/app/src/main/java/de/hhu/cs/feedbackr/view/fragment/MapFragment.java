@@ -6,6 +6,7 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Build;
@@ -37,7 +38,10 @@ import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.Circle;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -57,12 +61,14 @@ import java.util.concurrent.Executors;
 /**
  * A Fragment to Display A Map in the MainActivity
  */
-public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickListener {
+public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener {
 
     private static final String PERSONAL_PREFERENCE_KEY = "personal_marker";
     private static final String PUBLIC_PREFERENCE_KEY = "public_marker";
     private static final String POSTIVE_PREFERENCE_KEY = "positive_marker";
     private static final String NEGATIVE_PREFERENCE_KEY = "positive_marker";
+
+    private static final double MAX_CIRCLE_RADIUS = 3000;
 
     private MapView mMapView;
     private View mView;
@@ -100,6 +106,9 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
         System.out.println("CREATE MAP FRAGMENT");
     }
 
+    private Circle searchCircle;
+    private GeoQuery query;
+
     /**
      * Creates The View
      *
@@ -125,6 +134,17 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
         mMapView.getMapAsync(googleMap -> {
             mGoogleMap = googleMap;
 
+            Location location = ((MainActivity) getActivity()).getCurrentLocation();
+            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+            searchCircle = mGoogleMap.addCircle(new CircleOptions().center(latLng).radius(500));
+            searchCircle.setFillColor(Color.argb(66, 255, 0, 255));
+            searchCircle.setStrokeColor(Color.argb(66, 0, 0, 0));
+            mGoogleMap.setOnCameraIdleListener(this);
+
+            GeoFire geoFire = new GeoFire(FirebaseHelper.getGeofire());
+            query = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(), location.getLongitude()), 1.0);
+
             // todo think more
             if (mShowPersonal) {
                 addPersonalFeedbackListener();
@@ -149,7 +169,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                 return;
             }
             googleMap.setMyLocationEnabled(true);
-            Location location = ((MainActivity) getActivity()).getCurrentLocation();
+
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15));
             mMapView.onResume();
         });
@@ -375,7 +395,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
         };
         DatabaseReference userRef = FirebaseHelper.getUserRef();
         if (userRef != null) {
-            userRef.child("feedback").addChildEventListener(mPersonalListener);
+            //userRef.child("feedback").addChildEventListener(mPersonalListener);
         }
     }
 
@@ -383,27 +403,12 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
      * Attaches Listeners For Public Feedback
      */
     private void addPublishedFeedbackListener() {
-        GeoFire geoFire = new GeoFire(FirebaseHelper.getGeofire());
-
-        Location l = ((MainActivity) getActivity()).getCurrentLocation();
-        GeoQuery query = geoFire.queryAtLocation(new GeoLocation(l.getLatitude(), l.getLongitude()), 1.0);
-
-        mGoogleMap.setOnCameraMoveListener(() -> {
-            float f = 15F - mGoogleMap.getCameraPosition().zoom;
-
-            if (f > 0) {
-                query.setRadius(1.0*(1+f));
-            } else {
-                query.setRadius(1.0/(1+f));
-            }
-
-            System.out.println(query.getRadius());
-        });
-
         query.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
                 // get the actual feedback for the key
+
+
                 FirebaseHelper.getFeedback().child(key).addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -413,17 +418,34 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                         Feedback f = dataSnapshot.getValue(Feedback.class);
                         if (f != null) {
                             Log.d("Nearby-Feedback", f.toString());
+
+                            // todo check for public or personal feedback
+
+                            Marker marker = createMarker(f);
+                            if (marker != null) {
+                                mPublicMarkers.put(f.getId(), marker);
+                            }
+
                         }
                     }
 
                     @Override
                     public void onCancelled(DatabaseError databaseError) {
+                        System.out.println("ERROR READING " + key);
                     }
                 });
             }
 
             @Override
             public void onKeyExited(String key) {
+                String id = key;
+                System.out.println("REMOVED MARKER " + id);
+                try {
+                    mPublicMarkers.get(id).remove();
+                    mPublicMarkers.remove(id);
+                } catch (NullPointerException npe) {
+                    Log.e("MAP", "Marker was null");
+                }
             }
 
             @Override
@@ -484,7 +506,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
             }
         };
 
-        FirebaseHelper.getFeedback().orderByChild("published").equalTo(true).addChildEventListener(mPublicListener);
+        //FirebaseHelper.getFeedback().orderByChild("published").equalTo(true).addChildEventListener(mPublicListener);
     }
 
     private List<Feedback> all = new ArrayList<>();
@@ -578,5 +600,28 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         mMapView.onSaveInstanceState(outState);
+    }
+
+    private double zoomLevelToRadius(double zoom) {
+        System.out.println(156543.03392 * Math.cos(searchCircle.getCenter().latitude * Math.PI / 180) / Math.pow(2, zoom));
+        System.out.println(156543.03392 * Math.cos(searchCircle.getCenter().latitude * Math.PI / 180));
+
+        return 16384000 / Math.pow(2, zoom);
+    }
+
+    private void updateCenter() {
+        // update center
+        LatLng center = mGoogleMap.getCameraPosition().target;
+        searchCircle.setCenter(center);
+        query.setCenter(new GeoLocation(center.latitude, center.longitude));
+    }
+
+    @Override
+    public void onCameraIdle() {
+        double radius = zoomLevelToRadius(mGoogleMap.getCameraPosition().zoom);
+        if (radius > MAX_CIRCLE_RADIUS) radius = MAX_CIRCLE_RADIUS;
+        searchCircle.setRadius(radius);
+        // radius in kilometer
+        query.setRadius(radius / 1000);
     }
 }
