@@ -11,6 +11,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.util.concurrent.Executors;
+
 import de.hhu.cs.feedbackr.model.Feedback;
 import de.hhu.cs.feedbackr.model.Profile;
 
@@ -37,31 +39,34 @@ public class FirebaseHelper {
      * @param feedback Feedback to Save
      */
     public static void saveFeedback(Feedback feedback) {
-        System.out.println("SAVE FEEDBACK");
-        System.out.println(feedback);
+        Executors.newSingleThreadExecutor().execute(() -> {
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user == null) {
-            Log.i("NO CURRENT USER TAG", "User is null");
-            FirebaseCrash.log("User is null");
-            return;
-        }
+            System.out.println("SAVE FEEDBACK");
+            System.out.println(feedback);
 
-        //Save to User Section
-        mUsersRef.child(user.getUid()).child("feedback").child(feedback.getId()).setValue(feedback.getCategory());
-        //Save to Feedback Section
-        mFeedbackRef.child(feedback.getId()).setValue(feedback);
-
-        // save geofire Location
-        GeoFire geoFire = new GeoFire(mGeofireRef);
-
-        geoFire.setLocation(feedback.getId(), new GeoLocation(feedback.getLatitude(), feedback.getLongitude()), (key, error) -> {
-            if (error != null) {
-                FirebaseCrash.report(new Throwable("There was an error saving the location to GeoFire: " + error));
+            FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+            if (user == null) {
+                Log.i("NO CURRENT USER TAG", "User is null");
+                FirebaseCrash.log("User is null");
+                return;
             }
-        });
 
-        FirebaseStorageHelper.uploadImage(feedback);
+            //Save to User Section
+            mUsersRef.child(user.getUid()).child("feedback").child(feedback.getId()).setValue(feedback.getCategory());
+            //Save to Feedback Section
+            mFeedbackRef.child(feedback.getId()).setValue(feedback);
+
+            // save geofire Location
+            GeoFire geoFire = new GeoFire(mGeofireRef);
+
+            geoFire.setLocation(feedback.getId(), new GeoLocation(feedback.getLatitude(), feedback.getLongitude()), (key, error) -> {
+                if (error != null) {
+                    FirebaseCrash.report(new Throwable("There was an error saving the location to GeoFire: " + error));
+                }
+            });
+
+            FirebaseStorageHelper.uploadImage(feedback);
+        });
     }
 
     /**

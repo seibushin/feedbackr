@@ -19,6 +19,9 @@ import android.view.View;
 import android.widget.ImageView;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 
 import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.databinding.DialogSwitchBinding;
@@ -209,9 +212,7 @@ public class FeedbackEditActivity extends AppCompatActivity {
             File photoFile = createImageFile();
             // Continue only if the File was successfully created
             if (photoFile != null) {
-                Uri photoURI = FileProvider.getUriForFile(this,
-                        "de.hhu.cs.feedbackr.fileprovider",
-                        photoFile);
+                Uri photoURI = FileProvider.getUriForFile(this, "de.hhu.cs.feedbackr.fileprovider", photoFile);
                 takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
@@ -232,6 +233,13 @@ public class FeedbackEditActivity extends AppCompatActivity {
 
             Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, opt);
 
+            // save file to local storage
+            try (FileOutputStream fos = new FileOutputStream(createImageFile())) {
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
             mFeedbackEditFragment.setFeedbackPhoto(bitmap);
 
             showImage(null);
@@ -241,15 +249,6 @@ public class FeedbackEditActivity extends AppCompatActivity {
     private File createImageFile() {
         String imageFileName = mFeedbackEditFragment.getFeedback().getId();
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-
-        // creates unique filename with a trailing number
-            /*
-                File image = File.createTempFile(
-                imageFileName,  // prefix
-                ".jpg",         // suffix
-                storageDir      // directory
-            );
-            */
 
         File image = new File(storageDir, imageFileName + ".jpg");
 

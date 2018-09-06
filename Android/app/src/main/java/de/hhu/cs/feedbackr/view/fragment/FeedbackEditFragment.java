@@ -7,6 +7,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
@@ -35,9 +36,11 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
@@ -191,22 +194,120 @@ public class FeedbackEditFragment extends Fragment {
 
         //updateNearby();
 
-        Executors.newSingleThreadExecutor().execute(() -> {
-            // todo own thread to perform io task
-            File image = getImageFile();
-            // todo check!!!
-            System.out.println("Create VIEW");
-            System.out.println(mFeedback.isHasPhoto() + " " + image);
-            if (mFeedback.isHasPhoto() && (image == null || !image.exists())) {
-                loadImage();
-            } else if (image != null && image.exists()) {
-                setFeedbackPhoto(BitmapFactory.decodeFile(image.getAbsolutePath()));
-            } else {
-                setFeedbackPhoto(null);
-            }
-        });
+        if (mFeedback.isHasPhoto()) {
+            // show indicator
+
+            // load image
+            new LoadImageTask().execute();
+        }
 
         return view;
+    }
+
+    private class LoadImageTask extends AsyncTask<Void, Void, Void> {
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            System.out.println("LOAD IMAGE IN BACKGROUND");
+
+            // check if image is already downloaded
+
+            // get image file
+            String imageFileName = mFeedback.getId();
+            File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File image = new File(storageDir, imageFileName + ".jpg");
+
+            // image does not exist
+            // download it
+            if (!image.exists()) {
+                System.out.println("GET IMAGE FROM FIREBASE");
+                StorageReference load = FirebaseStorageHelper.feedbackRef.child(mFeedback.getId() + ".jpg");
+                load.getFile(image).addOnSuccessListener(taskSnapshot -> {
+                    System.out.println("test");
+                    Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath());
+                    getActivity().runOnUiThread(() -> {
+                        setFeedbackPhoto(bitmap);
+                    });
+                });
+            } else {
+                System.out.println("USE LOCAL IMAGE");
+                // image exists display it
+                Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath());
+                getActivity().runOnUiThread(() -> {
+                    setFeedbackPhoto(bitmap);
+                });
+            }
+
+            return null;
+        }
+    }
+
+    public Feedback getFeedback() {
+        boolean attach = ((Switch) getView().findViewById(R.id.switchAttach)).isChecked();
+        if (attach) {
+            if (mFeedback.getmProfile() == null) {
+                // no previous profile
+                // -> attach profile of user
+                mFeedback.setmProfile(Profile.getInstance());
+            }
+        } else {
+            mFeedback.setmProfile(null);
+        }
+
+        return mFeedback;
+    }
+
+    /**
+     * Handles Switching the Kind of the Feedback
+     */
+    public void switchKind() {
+        mFeedback.switchKind();
+        mAdapter = ArrayAdapter.createFromResource(getActivity(),
+                mFeedback.isPositive() ? R.array.positive_array : R.array.negative_array, android.R.layout.simple_spinner_item);
+        mAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        mSpinner.setAdapter(mAdapter);
+    }
+
+    public void setFeedbackPhoto(Bitmap image) {
+        mFeedback.setPhoto(image);
+        feedback_photo.setImageBitmap(image);
+    }
+
+    /**
+     * Update the Marker Icon
+     */
+    public void updateMarker() {
+        mMarker.setIcon(BitmapDescriptorFactory.fromBitmap(getBitmap(getContext(), mFeedback.isPositive(), mFeedback.getCategory())));
+    }
+
+    @Override
+    public void onResume() {
+        mMapView.onResume();
+        super.onResume();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        mMapView.onPause();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mMapView.onDestroy();
+    }
+
+    @Override
+    public void onLowMemory() {
+        super.onLowMemory();
+        mMapView.onLowMemory();
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        mMapView.onSaveInstanceState(outState);
     }
 
     /**
@@ -265,150 +366,5 @@ public class FeedbackEditFragment extends Fragment {
                 Log.e("GeoFire", error.toString());
             }
         });
-    }
-
-    public Feedback getFeedback() {
-        boolean attach = ((Switch) getView().findViewById(R.id.switchAttach)).isChecked();
-        if (attach) {
-            if (mFeedback.getmProfile() == null) {
-                // no previous profile
-                // -> attach profile of user
-                mFeedback.setmProfile(Profile.getInstance());
-            }
-        } else {
-            mFeedback.setmProfile(null);
-        }
-
-        return mFeedback;
-    }
-
-    /**
-     * Handles Switching the Kind of the Feedback
-     */
-    public void switchKind() {
-        mFeedback.switchKind();
-        mAdapter = ArrayAdapter.createFromResource(getActivity(),
-                mFeedback.isPositive() ? R.array.positive_array : R.array.negative_array, android.R.layout.simple_spinner_item);
-        mAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        mSpinner.setAdapter(mAdapter);
-    }
-
-    // todo resize image before setting it
-    public void setFeedback_photo(File image) {
-        int targetW = 500; // todo get height and width from imageView
-        int targetH = 400;
-
-        BitmapFactory.Options bmOptions = new BitmapFactory.Options();
-        bmOptions.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(image.getAbsolutePath(), bmOptions);
-        int photoW = bmOptions.outWidth;
-        int photoH = bmOptions.outHeight;
-
-        int scale = Math.min(photoW / targetW, photoH / targetH);
-
-        bmOptions.inJustDecodeBounds = false;
-        bmOptions.inSampleSize = scale;
-
-        Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath(), bmOptions);
-
-        mFeedback.setPhoto(bitmap);
-        feedback_photo.setImageBitmap(bitmap);
-    }
-
-    public void setFeedbackPhoto(Bitmap image) {
-        mFeedback.setPhoto(image);
-        feedback_photo.setImageBitmap(image);
-    }
-
-    private void loadImage() {
-        StorageReference image = FirebaseStorageHelper.feedbackRef.child(mFeedback.getId() + ".jpg");
-
-        File save = getImageFile();
-
-        image.getFile(save).addOnSuccessListener(taskSnapshot -> {
-            System.out.println("successsfull loaded image");
-            setFeedback_photo(save);
-        }).addOnFailureListener(e -> {
-            e.printStackTrace();
-            System.out.println(e);
-            System.out.println("unsuccessful loaded image");
-        });
-
-        /*
-        final long ONE_MEGABYTE = 1024 * 1024;
-        image.getBytes(ONE_MEGABYTE).addOnSuccessListener(bytes -> {
-            System.out.println("successsfull loaded image");
-            //File imageF = getImageFile();
-            //setFeedback_photo(imageF, true);
-
-            setFeedbackPhoto(BitmapFactory.decodeByteArray(bytes, 0, bytes.length));
-        }).addOnFailureListener(exception -> {
-            exception.printStackTrace();
-            System.out.println(exception);
-            System.out.println("unsuccessful loaded image");
-        });
-        */
-    }
-
-    private File getImageFile() {
-        try {
-            String imageFileName = mFeedback.getId();
-            File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-
-            // creates unique filename with a trailing number
-        /*
-        File image = File.createTempFile(
-                imageFileName,  // prefix
-                ".jpg",         // suffix
-                storageDir      // directory
-        );
-        */
-
-            File image = new File(storageDir, imageFileName + ".jpg");
-
-            // Save a file: path for use with ACTION_VIEW intents
-            return image;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return null;
-    }
-
-    /**
-     * Update the Marker Icon
-     */
-    public void updateMarker() {
-        mMarker.setIcon(BitmapDescriptorFactory.fromBitmap(getBitmap(getContext(), mFeedback.isPositive(), mFeedback.getCategory())));
-    }
-
-    @Override
-    public void onResume() {
-        mMapView.onResume();
-        super.onResume();
-    }
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        mMapView.onPause();
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        mMapView.onDestroy();
-    }
-
-    @Override
-    public void onLowMemory() {
-        super.onLowMemory();
-        mMapView.onLowMemory();
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        mMapView.onSaveInstanceState(outState);
     }
 }
