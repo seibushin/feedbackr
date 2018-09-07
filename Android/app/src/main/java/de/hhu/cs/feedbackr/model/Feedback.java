@@ -29,6 +29,7 @@ import java.util.Objects;
 
 @IgnoreExtraProperties
 public class Feedback extends BaseObservable implements Serializable {
+    private String mId;
     private double mLatitude;
     private double mLongitude;
     private boolean mPositive;
@@ -39,11 +40,10 @@ public class Feedback extends BaseObservable implements Serializable {
     private String mDetails;
     private float mRating;
     private boolean mHasPhoto;
+    private String owner;
+    private Profile profile;
+
     transient private Bitmap mPhoto;
-
-    private String mId;
-
-    private Profile mProfile;
 
     /**
      * Empty Constructor for Firebase
@@ -58,18 +58,16 @@ public class Feedback extends BaseObservable implements Serializable {
      * @param calendar A Calendar Object to get Date and Time of the Feedback
      * @param city     A String of City the User has send the Feedback from
      */
-    public Feedback(Location location, Calendar calendar, String city, boolean kind, String id) {
-        setLatitude(location.getLatitude());
-        setLongitude(location.getLongitude());
-
+    public Feedback(Location location, Calendar calendar, String city, boolean positive, String id) {
+        mLatitude = location.getLatitude();
+        mLongitude = location.getLongitude();
         mDate = calendar.getTimeInMillis();
-        setCity(city);
-        setPositive(kind);
+        mCity = city;
+        mPositive = positive;
         mDetails = "";
         mPublish = true;
-        mCategory = CategoryConverter.getDefault(kind);
-
-        setId(id);
+        mCategory = CategoryConverter.getDefault(positive);
+        mId = id;
     }
 
     public double getLatitude() {
@@ -127,13 +125,6 @@ public class Feedback extends BaseObservable implements Serializable {
     }
 
     /**
-     * Switches between Positive and Negative Feedback
-     */
-    public void switchKind() {
-        setPositive(!mPositive);
-    }
-
-    /**
      * Never Used in Code but essential to Firebase
      * @return current Date
      */
@@ -162,23 +153,6 @@ public class Feedback extends BaseObservable implements Serializable {
         mCategory = category;
     }
 
-    @Exclude
-    public String getTime() {
-        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
-        return sdf.format(mDate);
-    }
-
-    @Exclude
-    public String getDay() {
-        DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
-        return df.format(mDate);
-    }
-
-    @Exclude
-    public boolean hasProfile() {
-        return mProfile != null;
-    }
-
     public String getId() {
         return mId;
     }
@@ -187,12 +161,12 @@ public class Feedback extends BaseObservable implements Serializable {
         mId = id;
     }
 
-    public Profile getmProfile() {
-        return mProfile;
+    public Profile getProfile() {
+        return profile;
     }
 
-    public void setmProfile(Profile mProfile) {
-        this.mProfile = mProfile;
+    public void setProfile(Profile profile) {
+        this.profile = profile;
     }
 
     public float getRating() {
@@ -209,6 +183,31 @@ public class Feedback extends BaseObservable implements Serializable {
 
     public void setHasPhoto(boolean mHasPhoto) {
         this.mHasPhoto = mHasPhoto;
+    }
+
+    public String getOwner() {
+        return owner;
+    }
+
+    public void setOwner(String owner) {
+        this.owner = owner;
+    }
+
+    @Exclude
+    public boolean hasProfile() {
+        return profile != null;
+    }
+
+    @Exclude
+    public String getTime() {
+        SimpleDateFormat sdf = new SimpleDateFormat("HH:mm", Locale.getDefault());
+        return sdf.format(mDate);
+    }
+
+    @Exclude
+    public String getDay() {
+        DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
+        return df.format(mDate);
     }
 
     @Exclude
@@ -228,11 +227,22 @@ public class Feedback extends BaseObservable implements Serializable {
         }
     }
 
-    @BindingAdapter("android:src")
-    public static void loadImage(ImageView view, Bitmap bitmap) {
-        System.out.println("BITMAP:" + bitmap);
-        System.out.println(view);
-        view.setImageBitmap(bitmap);
+    /**
+     * Switches between Positive and Negative Feedback
+     */
+    public void switchKind() {
+        setPositive(!mPositive);
+    }
+
+    @Override
+    public int hashCode() {
+        Object[] id = {mId};
+        return  Arrays.hashCode(id);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return mId.equals(((Feedback) obj).mId);
     }
 
     @Override
@@ -247,20 +257,10 @@ public class Feedback extends BaseObservable implements Serializable {
                 ", mPublish=" + mPublish +
                 ", mDetails='" + mDetails + '\'' +
                 ", mId='" + mId + '\'' +
-                ", mProfile='" + mProfile + '\'' +
+                ", mProfile='" + profile + '\'' +
                 ", mRating=" + mRating +
                 ", mHasPhoto=" + mHasPhoto +
+                ", owner=" + owner +
                 '}';
-    }
-
-    @Override
-    public int hashCode() {
-        Object[] id = {mId};
-        return  Arrays.hashCode(id);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return mId.equals(((Feedback) obj).mId);
     }
 }

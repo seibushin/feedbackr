@@ -19,7 +19,6 @@ import de.hhu.cs.feedbackr.view.FeedbackAdapter;
  * A Fragment to Display the Profile Information
  */
 public class FeedbacksFragment extends Fragment {
-
     private RecyclerView mFeedbackLayout;
 
     public FeedbacksFragment() {
@@ -29,7 +28,6 @@ public class FeedbacksFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        System.out.println("CREATE");
     }
 
     /**
@@ -41,8 +39,7 @@ public class FeedbacksFragment extends Fragment {
      * @return the View of the Fragment
      */
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View view = inflater.inflate(R.layout.fragment_feedbacks, container, false);
 
@@ -51,21 +48,19 @@ public class FeedbacksFragment extends Fragment {
         return view;
     }
 
-    /**
-     * Initializes the RecyclerView
-     */
-    private void getFeedbackList() {
-        // todo create tabLayout
-        // then we dont need to hold a singleton since the tabLayout will create the view only once
-        mFeedbackLayout.setAdapter(FeedbackAdapter.getInstance());
-        mFeedbackLayout.setNestedScrollingEnabled(true);
-        mFeedbackLayout.setLayoutManager(new LinearLayoutManager(getActivity()));
-        mFeedbackLayout.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
-    }
-
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         getFeedbackList();
+    }
+
+    /**
+     * Initializes the RecyclerView
+     */
+    private void getFeedbackList() {
+        mFeedbackLayout.setAdapter(new FeedbackAdapter());
+        mFeedbackLayout.setNestedScrollingEnabled(true);
+        mFeedbackLayout.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mFeedbackLayout.addItemDecoration(new DividerItemDecoration(getContext(), DividerItemDecoration.VERTICAL));
     }
 }

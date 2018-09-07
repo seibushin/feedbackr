@@ -83,7 +83,7 @@ public class FeedbackEditFragment extends Fragment {
         FeedbackEditFragment alarmDetail = new FeedbackEditFragment();
 
         alarmDetail.setFeedback(feedback);
-        if (feedback.getmProfile() != null) {
+        if (feedback.getProfile() != null) {
             System.out.println("FEEDBACK HAS PROFILE INFOS");
         } else {
             System.out.println("FEEDBACK HAS NO PROFILE INFOS");
@@ -245,13 +245,13 @@ public class FeedbackEditFragment extends Fragment {
     public Feedback getFeedback() {
         boolean attach = ((Switch) getView().findViewById(R.id.switchAttach)).isChecked();
         if (attach) {
-            if (mFeedback.getmProfile() == null) {
+            if (mFeedback.getProfile() == null) {
                 // no previous profile
                 // -> attach profile of user
-                mFeedback.setmProfile(Profile.getInstance());
+                mFeedback.setProfile(Profile.getInstance());
             }
         } else {
-            mFeedback.setmProfile(null);
+            mFeedback.setProfile(null);
         }
 
         return mFeedback;

@@ -6,7 +6,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.os.Build;
@@ -38,30 +37,26 @@ import com.firebase.geofire.GeoQueryEventListener;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
-import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Circle;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.firebase.crash.FirebaseCrash;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.concurrent.Executors;
 
 
 /**
  * A Fragment to Display A Map in the MainActivity
  */
-public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener {
+public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener, OnMapReadyCallback {
 
     private static final String PERSONAL_PREFERENCE_KEY = "personal_marker";
     private static final String PUBLIC_PREFERENCE_KEY = "public_marker";
@@ -71,9 +66,9 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
     private static final double MAX_CIRCLE_RADIUS = 3000;
 
     private MapView mMapView;
-    private View mView;
+    private View view;
     private HashMap<String, Marker> mPersonalMarkers;
-    private HashMap<String, Marker> mPublicMarkers;
+    private HashMap<String, Marker> publicMarker;
 
     // todo think more
     private HashMap<String, Marker> mNegPersonalMarkers;
@@ -81,20 +76,24 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
     private HashMap<String, Marker> mNegPublicMarkers;
     private HashMap<String, Marker> mPosPublicMarkers;
 
-    private FloatingActionButton mPersonalFAB;
-    private FloatingActionButton mPublicFAB;
-    private FloatingActionButton mPositiveFAB;
-    private FloatingActionButton mNegativeFAB;
+    private FloatingActionButton privateFAB;
+    private FloatingActionButton publicFAB;
+    private FloatingActionButton positiveFAB;
+    private FloatingActionButton negativeFAB;
+    private FloatingActionButton centerFAB;
 
-    private boolean mShowPersonal;
-    private boolean mShowPublic;
+    private boolean showPrivate;
+    private boolean showPublic;
     private boolean mShowPositive;
-    private boolean mShowNegative;
+    private boolean showNegative;
 
     private ChildEventListener mPersonalListener;
     private ChildEventListener mPublicListener;
 
-    private GoogleMap mGoogleMap;
+    private GoogleMap googleMap;
+
+    private SharedPreferences.Editor editor;
+    private boolean mapLoaded = false;
 
     public MapFragment() {
         // Required empty public constructor
@@ -122,176 +121,81 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         System.out.println("CREATE MAP FRAGMENT VIEW");
-        mView = inflater.inflate(R.layout.fragment_map, container, false);
+        view = inflater.inflate(R.layout.fragment_map, container, false);
 
         mPersonalMarkers = new HashMap<>();
-        mPublicMarkers = new HashMap<>();
+        publicMarker = new HashMap<>();
 
+        getPreferences();
         initFABs();
 
-        mMapView = mView.findViewById(R.id.map_map);
+        mMapView = view.findViewById(R.id.map_map);
         mMapView.onCreate(savedInstanceState);
-        mMapView.getMapAsync(googleMap -> {
-            mGoogleMap = googleMap;
+        mMapView.getMapAsync(this);
 
-            Location location = ((MainActivity) getActivity()).getCurrentLocation();
-            LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+        return view;
+    }
 
-            searchCircle = mGoogleMap.addCircle(new CircleOptions().center(latLng).radius(500));
-            searchCircle.setFillColor(Color.argb(66, 255, 0, 255));
-            searchCircle.setStrokeColor(Color.argb(66, 0, 0, 0));
-            mGoogleMap.setOnCameraIdleListener(this);
-
-            GeoFire geoFire = new GeoFire(FirebaseHelper.getGeofire());
-            query = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(), location.getLongitude()), 1.0);
-
-            // todo think more
-            if (mShowPersonal) {
-                addPersonalFeedbackListener();
-            }
-            if (mShowPublic) {
-                addPublishedFeedbackListener();
-            }
-            if (mShowNegative) {
-                // todo
-            }
-            if (mShowPositive) {
-                // todo
-            }
-
-            //Show FABs Here to prevent Errors resulting from trying to add Markers on not Loaded Map
-            mPersonalFAB.setVisibility(View.VISIBLE);
-            mPublicFAB.setVisibility(View.VISIBLE);
-            mNegativeFAB.setVisibility(View.VISIBLE);
-            mPositiveFAB.setVisibility(View.VISIBLE);
-
-            if (ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                return;
-            }
-            googleMap.setMyLocationEnabled(true);
-
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15));
-            mMapView.onResume();
-        });
-
-        return mView;
+    private void getPreferences() {
+        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
+        editor = sharedPref.edit();
+        showPrivate = sharedPref.getBoolean(PERSONAL_PREFERENCE_KEY, true);
+        showPublic = sharedPref.getBoolean(PUBLIC_PREFERENCE_KEY, true);
+        mShowPositive = sharedPref.getBoolean(POSTIVE_PREFERENCE_KEY, true);
+        showNegative = sharedPref.getBoolean(NEGATIVE_PREFERENCE_KEY, true);
     }
 
     /**
      * Initializes the FABs to declare which Feedback should be displayed on the Map
      */
     private void initFABs() {
-        SharedPreferences sharedPref = getActivity().getPreferences(Context.MODE_PRIVATE);
-        final SharedPreferences.Editor editor = sharedPref.edit();
-        mShowPersonal = sharedPref.getBoolean(PERSONAL_PREFERENCE_KEY, true);
-        mShowPublic = sharedPref.getBoolean(PUBLIC_PREFERENCE_KEY, true);
-        mShowPositive = sharedPref.getBoolean(POSTIVE_PREFERENCE_KEY, true);
-        mShowNegative = sharedPref.getBoolean(NEGATIVE_PREFERENCE_KEY, true);
+        privateFAB = view.findViewById(R.id.map_fab_personal);
+        privateFAB.setImageResource(showPrivate ? R.drawable.ic_profile_white_24dp : R.drawable.ic_profile_disabled_white_24dp);
+        privateFAB.setOnClickListener(v -> showPrivate());
 
-        mPersonalFAB = mView.findViewById(R.id.map_fab_personal);
-        mPersonalFAB.setImageResource(mShowPersonal ? R.drawable.ic_profile_white_24dp : R.drawable.ic_profile_disabled_white_24dp);
-        mPersonalFAB.setOnClickListener(view -> {
+        publicFAB = view.findViewById(R.id.map_fab_public);
+        publicFAB.setImageResource(showPublic ? R.drawable.ic_public_black_24dp : R.drawable.ic_public_disabled_black_24dp);
+        publicFAB.setOnClickListener(v -> showPublic());
+
+        negativeFAB = view.findViewById(R.id.map_fab_negative);
+        positiveFAB = view.findViewById(R.id.map_fab_positive);
+
+        centerFAB = view.findViewById(R.id.btn_center);
+        centerFAB.setOnClickListener(v -> updateCenter());
+    }
+
+    public void showPublic() {
+        if (mapLoaded) {
             String showHide;
-            mShowPersonal = !mShowPersonal;
-            mPersonalFAB.setImageResource(mShowPersonal ? R.drawable.ic_profile_white_24dp : R.drawable.ic_profile_disabled_white_24dp);
-            editor.putBoolean(PERSONAL_PREFERENCE_KEY, mShowPersonal).apply();
-            if (mShowPersonal) {
-                addPersonalFeedbackListener();
+            showPublic = !showPublic;
+            publicFAB.setImageResource(showPublic ? R.drawable.ic_public_black_24dp : R.drawable.ic_public_disabled_black_24dp);
+            editor.putBoolean(PUBLIC_PREFERENCE_KEY, showPublic).apply();
+            if (showPublic) {
+                // todo show available public feedback
                 showHide = getString(R.string.show);
             } else {
-                stopPersonalListener();
-                showHide = getString(R.string.hide);
-            }
-            ((MainActivity) getActivity()).createToast(String.format(getString(R.string.show_hide_private), showHide), Toast.LENGTH_SHORT);
-        });
-        mPersonalFAB.setOnLongClickListener(view -> {
-            ((MainActivity) getActivity()).createToast(String.format(getString(R.string.show_hide_private), getString(R.string.show_hide)), Toast.LENGTH_SHORT);
-            return true;
-        });
-
-        mPublicFAB = mView.findViewById(R.id.map_fab_public);
-        mPublicFAB.setImageResource(mShowPublic ? R.drawable.ic_public_black_24dp : R.drawable.ic_public_disabled_black_24dp);
-        mPublicFAB.setOnClickListener(view -> {
-            String showHide;
-            mShowPublic = !mShowPublic;
-            mPublicFAB.setImageResource(mShowPublic ? R.drawable.ic_public_black_24dp : R.drawable.ic_public_disabled_black_24dp);
-            editor.putBoolean(PUBLIC_PREFERENCE_KEY, mShowPublic).apply();
-            if (mShowPublic) {
-                addPublishedFeedbackListener();
-                showHide = getString(R.string.show);
-            } else {
-                stopPublishedListener();
+                // todo hide available public feedback
                 showHide = getString(R.string.hide);
             }
             ((MainActivity) getActivity()).createToast(String.format(getString(R.string.show_hide_public), showHide), Toast.LENGTH_SHORT);
-        });
-        mPublicFAB.setOnLongClickListener(view -> {
-            ((MainActivity) getActivity()).createToast(String.format(getString(R.string.show_hide_public), getString(R.string.show_hide)), Toast.LENGTH_SHORT);
-            return true;
-        });
-
-        mPositiveFAB = mView.findViewById(R.id.map_fab_positive);
-        mPositiveFAB.setImageResource(mShowPositive ? R.drawable.ic_thumb_up_white_24dp : R.drawable.ic_thumb_up_disabled_white_24dp);
-        mPositiveFAB.setOnClickListener(v -> {
-            String showHide;
-            mShowPositive = !mShowPositive;
-            mPositiveFAB.setImageResource(mShowPositive ? R.drawable.ic_thumb_up_white_24dp : R.drawable.ic_thumb_up_disabled_white_24dp);
-            if (mShowNegative) {
-                showHide = getString(R.string.show);
-                // todo show positive
-            } else {
-                showHide = getString(R.string.hide);
-                // todo hide positive
-            }
-
-            // toast
-            ((MainActivity) getActivity()).createToast(String.format(getString(R.string.show_hide_postive), showHide), Toast.LENGTH_SHORT);
-        });
-        // todo long hold#
-
-        // todo pretend we are working on sets
-
-        mNegativeFAB = mView.findViewById(R.id.map_fab_negative);
-        mNegativeFAB.setImageResource(mShowNegative ? R.drawable.ic_thumb_down_white_24dp : R.drawable.ic_thumb_down_disabled_white_24dp);
-        mNegativeFAB.setOnClickListener(v -> {
-            String showHide;
-            mShowNegative = !mShowNegative;
-            mNegativeFAB.setImageResource(mShowNegative ? R.drawable.ic_thumb_down_white_24dp : R.drawable.ic_thumb_down_disabled_white_24dp);
-            if (mShowNegative) {
-                showHide = getString(R.string.show);
-                // todo show negative
-            } else {
-                showHide = getString(R.string.hide);
-                // todo hide negative
-            }
-
-            // show toast
-            ((MainActivity) getActivity()).createToast(String.format(getString(R.string.show_hide_negative), showHide), Toast.LENGTH_SHORT);
-        });
-        // todo long hold
-    }
-
-    /**
-     * Stops Personal Listener
-     */
-    private void stopPersonalListener() {
-        removeMarkers(mPersonalMarkers);
-        mPersonalMarkers = new HashMap<>();
-        DatabaseReference userRef = FirebaseHelper.getUserRef();
-        if (userRef != null) {
-            // todo check dont remove?
-            userRef.removeEventListener(mPersonalListener);
         }
     }
 
-    /**
-     * Stops Published Listener
-     */
-    private void stopPublishedListener() {
-        removeMarkers(mPublicMarkers);
-        mPublicMarkers = new HashMap<>();
-        // todo check dont remove?
-        FirebaseHelper.getFeedback().removeEventListener(mPublicListener);
+    public void showPrivate() {
+        if (mapLoaded) {
+            String showHide;
+            showPrivate = !showPrivate;
+            privateFAB.setImageResource(showPrivate ? R.drawable.ic_profile_white_24dp : R.drawable.ic_profile_disabled_white_24dp);
+            editor.putBoolean(PERSONAL_PREFERENCE_KEY, showPrivate).apply();
+            if (showPrivate) {
+                // todo show available public feedback
+                showHide = getString(R.string.show);
+            } else {
+                // todo show available public feedback
+                showHide = getString(R.string.hide);
+            }
+            ((MainActivity) getActivity()).createToast(String.format(getString(R.string.show_hide_private), showHide), Toast.LENGTH_SHORT);
+        }
     }
 
     /**
@@ -317,132 +221,58 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
         Bitmap bmp = getBitmapFromVectorDrawable(CategoryConverter.tagToDrawable(feedback.getCategory()), feedback.isPositive());
         if (bmp != null) {
             MarkerOptions marker = new MarkerOptions().position(pos).icon(BitmapDescriptorFactory.fromBitmap(bmp));
-            Marker actMarker = mGoogleMap.addMarker(marker);
+            Marker actMarker = googleMap.addMarker(marker);
             actMarker.setTag(feedback.getId());
-            mGoogleMap.setOnMarkerClickListener(this);
+            googleMap.setOnMarkerClickListener(this);
             return actMarker;
         }
         return null;
     }
 
     /**
-     * Attaches Listener for User Feedback to Firebase
+     * Attaches a listener to the GeoFire query. Which will give all Feedback in a certain area/radius.
+     * The returned Feedback keys will be used to get the Feedback.
      */
-    private void addPersonalFeedbackListener() {
-        mPersonalListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Log.i("Child Added Tag", dataSnapshot.getKey());
-                FirebaseHelper.getFeedback().child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        Feedback feedback = dataSnapshot.getValue(Feedback.class);
-                        if (feedback != null) {
-                            // the feedback has no resolved cityname
-                            if (feedback.getCity().equals("")) {
-                                // try to get the cityname
-                                try {
-                                    feedback.setCity(((MainActivity) getContext()).getCityName(feedback.getLatitude(), feedback.getLongitude()));
-                                    // save the cityname
-                                    FirebaseHelper.saveFeedback(feedback);
-                                } catch (NullPointerException npe) {
-                                    // unable to get cityname
-                                    FirebaseCrash.log("unable to resolve unresolved cityname for " + feedback.getId());
-                                    FirebaseCrash.report(npe);
-                                }
-                            }
-                            Marker marker = createMarker(feedback);
-                            if (marker != null) {
-                                // todo switch for pos neg
-                                // check if positive is showing?!
-                                mPersonalMarkers.put(feedback.getId(), marker);
-                            }
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                String id = dataSnapshot.getKey();
-                try {
-                    mPersonalMarkers.get(id).remove();
-                    mPersonalMarkers.remove(id);
-                } catch (NullPointerException npe) {
-                    Log.e("MAP", "Marker was null");
-                }
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        };
-        DatabaseReference userRef = FirebaseHelper.getUserRef();
-        if (userRef != null) {
-            //userRef.child("feedback").addChildEventListener(mPersonalListener);
-        }
-    }
-
-    /**
-     * Attaches Listeners For Public Feedback
-     */
-    private void addPublishedFeedbackListener() {
+    private void addFeedbackListener() {
         query.addGeoQueryEventListener(new GeoQueryEventListener() {
             @Override
             public void onKeyEntered(String key, GeoLocation location) {
                 // get the actual feedback for the key
+                if (publicMarker.containsKey(key)) {
+                    publicMarker.get(key).setVisible(true);
+                } else {
+                    FirebaseHelper.getFeedback().child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            Feedback f = dataSnapshot.getValue(Feedback.class);
 
+                            // check if published or owned
+                            if (f != null && (f.isPublished() || f.getOwner().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()))) {
+                                Log.d("Nearby-Feedback", f.toString());
 
-                FirebaseHelper.getFeedback().child(key).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        // check if published
-                        // validate if relevant
-                        // type match, title match, desc match ?
-                        Feedback f = dataSnapshot.getValue(Feedback.class);
-                        if (f != null) {
-                            Log.d("Nearby-Feedback", f.toString());
-
-                            // todo check for public or personal feedback
-
-                            Marker marker = createMarker(f);
-                            if (marker != null) {
-                                mPublicMarkers.put(f.getId(), marker);
+                                // todo check for public or personal feedback
+                                Marker marker = createMarker(f);
+                                if (marker != null) {
+                                    publicMarker.put(f.getId(), marker);
+                                }
                             }
-
                         }
-                    }
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        System.out.println("ERROR READING " + key);
-                    }
-                });
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            System.out.println("ERROR READING " + key);
+                        }
+                    });
+                }
             }
 
             @Override
             public void onKeyExited(String key) {
-                String id = key;
-                System.out.println("REMOVED MARKER " + id);
+                System.out.println("HIDE MARKER " + key);
                 try {
-                    mPublicMarkers.get(id).remove();
-                    mPublicMarkers.remove(id);
+                    publicMarker.get(key).setVisible(false);
+//                    publicMarker.get(key).remove();
+//                    publicMarker.remove(id);
                 } catch (NullPointerException npe) {
                     Log.e("MAP", "Marker was null");
                 }
@@ -454,8 +284,6 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
 
             @Override
             public void onGeoQueryReady() {
-                // initial data has been loaded and all events have been triggered
-//                query.removeAllListeners();
             }
 
             @Override
@@ -463,55 +291,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                 Log.e("GeoFire", error.toString());
             }
         });
-
-        mPublicListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                System.out.println("ADD MARKER " + dataSnapshot.getKey());
-
-                Feedback feedback = dataSnapshot.getValue(Feedback.class);
-                if (feedback != null) {
-                    Marker marker = createMarker(feedback);
-                    if (marker != null) {
-                        mPublicMarkers.put(feedback.getId(), marker);
-                    }
-                }
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                String id = dataSnapshot.getKey();
-                System.out.println("REMOVED MARKER " + id);
-                try {
-                    mPublicMarkers.get(id).remove();
-                    mPublicMarkers.remove(id);
-                } catch (NullPointerException npe) {
-                    Log.e("MAP", "Marker was null");
-                }
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        };
-
-        //FirebaseHelper.getFeedback().orderByChild("published").equalTo(true).addChildEventListener(mPublicListener);
     }
-
-    private List<Feedback> all = new ArrayList<>();
-    private List<Feedback> published = new ArrayList<>();
-
 
     /**
      * When clicking on a Marker a Dialog should be shown
@@ -530,7 +310,8 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Feedback feedback = dataSnapshot.getValue(Feedback.class);
-                DialogFragment dialog = FeedbackDialog.newInstance(feedback, mPersonalMarkers.containsKey(id));
+                System.out.println(feedback.getOwner() + FirebaseAuth.getInstance().getCurrentUser().getUid());
+                DialogFragment dialog = FeedbackDialog.newInstance(feedback, feedback.getOwner().equals(FirebaseAuth.getInstance().getCurrentUser().getUid()));
                 dialog.show(getFragmentManager(), "FeedbackDialog");
             }
 
@@ -603,22 +384,66 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
     }
 
     private double zoomLevelToRadius(double zoom) {
-        System.out.println(156543.03392 * Math.cos(searchCircle.getCenter().latitude * Math.PI / 180) / Math.pow(2, zoom));
-        System.out.println(156543.03392 * Math.cos(searchCircle.getCenter().latitude * Math.PI / 180));
-
+        // estimated value 2^14 * 1000
+        // fills almost the screen at 96dpi
+        // this is equal to 1000 meter at zoom level 15
         return 16384000 / Math.pow(2, zoom);
     }
 
     private void updateCenter() {
-        // update center
-        LatLng center = mGoogleMap.getCameraPosition().target;
-        searchCircle.setCenter(center);
-        query.setCenter(new GeoLocation(center.latitude, center.longitude));
+        if (mapLoaded) {
+            // update center
+            LatLng center = googleMap.getCameraPosition().target;
+            searchCircle.setCenter(center);
+            query.setCenter(new GeoLocation(center.latitude, center.longitude));
+        }
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        this.googleMap = googleMap;
+
+        Location location = ((MainActivity) getActivity()).getCurrentLocation();
+        LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+
+        searchCircle = this.googleMap.addCircle(new CircleOptions().center(latLng).radius(1000));
+        searchCircle.setFillColor(ContextCompat.getColor(getContext(), R.color.mapCircleFill));
+        searchCircle.setStrokeColor(ContextCompat.getColor(getContext(), R.color.mapCircleStroke));
+        this.googleMap.setOnCameraIdleListener(this);
+
+        GeoFire geoFire = new GeoFire(FirebaseHelper.getGeofire());
+        query = geoFire.queryAtLocation(new GeoLocation(location.getLatitude(), location.getLongitude()), 1.0);
+
+        addFeedbackListener();
+
+        // todo think more
+        if (showPrivate) {
+
+        }
+        if (showPublic) {
+
+        }
+        if (showNegative) {
+            // todo
+        }
+        if (mShowPositive) {
+            // todo
+        }
+
+        if (ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(getActivity(), android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        googleMap.setMyLocationEnabled(true);
+
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15));
+        mMapView.onResume();
+
+        mapLoaded = true;
     }
 
     @Override
     public void onCameraIdle() {
-        double radius = zoomLevelToRadius(mGoogleMap.getCameraPosition().zoom);
+        double radius = zoomLevelToRadius(googleMap.getCameraPosition().zoom);
         if (radius > MAX_CIRCLE_RADIUS) radius = MAX_CIRCLE_RADIUS;
         searchCircle.setRadius(radius);
         // radius in kilometer

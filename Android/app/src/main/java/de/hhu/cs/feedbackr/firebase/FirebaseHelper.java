@@ -1,9 +1,12 @@
 package de.hhu.cs.feedbackr.firebase;
 
+import android.support.annotation.NonNull;
 import android.util.Log;
 
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.crash.FirebaseCrash;
@@ -40,7 +43,6 @@ public class FirebaseHelper {
      */
     public static void saveFeedback(Feedback feedback) {
         Executors.newSingleThreadExecutor().execute(() -> {
-
             System.out.println("SAVE FEEDBACK");
             System.out.println(feedback);
 
@@ -51,8 +53,9 @@ public class FirebaseHelper {
                 return;
             }
 
-            //Save to User Section
-            mUsersRef.child(user.getUid()).child("feedback").child(feedback.getId()).setValue(feedback.getCategory());
+            // set owner for the feedback
+            feedback.setOwner(user.getUid());
+
             //Save to Feedback Section
             mFeedbackRef.child(feedback.getId()).setValue(feedback);
 
@@ -80,7 +83,7 @@ public class FirebaseHelper {
             System.out.println("SAVE PROFILE for " + user.getUid());
             System.out.println(profile);
 
-            mUsersRef.child(user.getUid()).child("profile").setValue(profile);
+            mUsersRef.child(user.getUid()).setValue(profile);
         }
     }
 
@@ -95,8 +98,8 @@ public class FirebaseHelper {
             Log.i("NO CURRENT USER TAG", "User is null");
             return;
         }
+
         mFeedbackRef.child(feedback.getId()).removeValue();
-        mUsersRef.child(user.getUid()).child("feedback").child(feedback.getId()).removeValue();
 
         // remove geofire
         GeoFire geoFire = new GeoFire(mGeofireRef);
@@ -127,14 +130,5 @@ public class FirebaseHelper {
 
     public static DatabaseReference getGeofire() {
         return mGeofireRef;
-    }
-
-    public static DatabaseReference getProfileRef() {
-        DatabaseReference user = getUserRef();
-        if (user != null) {
-            System.out.println(user.child("profile").toString());
-            return user.child("profile");
-        }
-        return null;
     }
 }

@@ -3,6 +3,9 @@
     <color name="colorPrimary">#1976D2</color>
     <color name="colorPrimaryDark">#1976D2</color>
 
+    <color name="mapCircleFill">#3c1976d2</color>
+    <color name="mapCircleStroke">#1976d2</color>
+
     <color name="colorBackground">#FFFFFF</color>
 
     <color name="colorPrimaryDetail">#FFFFFF</color>

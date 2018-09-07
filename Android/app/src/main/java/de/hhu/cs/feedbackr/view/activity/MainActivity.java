@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity
     private void getProfile() {
         // todo create isNew boolean instead and use empty profile for the initial object
         if (Profile.getInstance() == null) {
-            FirebaseHelper.getProfileRef().addValueEventListener(new ValueEventListener() {
+            FirebaseHelper.getUserRef().addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     Profile.setInstanceProfile(dataSnapshot.getValue(Profile.class));
