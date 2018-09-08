@@ -18,37 +18,46 @@ import de.hhu.cs.feedbackr.model.Feedback;
 
 public class FirebaseStorageHelper {
     // Create a storage reference from our app
-    public static StorageReference storageRef = FirebaseStorage.getInstance().getReference();
+    private static StorageReference storageRef = FirebaseStorage.getInstance().getReference();
     // Create a child reference
     // imagesRef now points to "images"
     public static StorageReference feedbackRef = storageRef.child("feedback");
 
+    /**
+     * Upload the image of the given feedback
+     *
+     * @param feedback the feedback
+     */
     public static void uploadImage(Feedback feedback) {
         if (feedback.getPhoto() != null) {
             System.out.println("Upload Image");
             System.out.println(feedback);
 
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            feedback.getPhoto().compress(Bitmap.CompressFormat.JPEG, 100, baos);
-            byte[] data = baos.toByteArray();
+            ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+            feedback.getPhoto().compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
+            byte[] data = byteArrayOutputStream.toByteArray();
 
             StorageReference image = feedbackRef.child(feedback.getId() + ".jpg");
 
             UploadTask uploadTask = image.putBytes(data);
             uploadTask.addOnFailureListener(exception -> {
                 // Handle unsuccessful uploads
-                System.out.println("unsuccessfull upload");
+                System.out.println("unsuccessful upload");
             }).addOnSuccessListener(taskSnapshot -> {
-                System.out.println("successfull upload");
-                // taskSnapshot.getMetadata() contains file metadata such as size, content-type, and download URL.
-                //Uri downloadUrl = taskSnapshot.getDownloadUrl();
+                // Upload was successful
+                System.out.println("successful upload");
             });
         }
     }
 
-    public static void deleteImage(Feedback feedback) {
+    /**
+     * Delete the image for the given Feedback Id
+     *
+     * @param feedbackId the feedbacks id
+     */
+    public static void deleteImage(String feedbackId) {
         // Create a storage reference from our app
-        StorageReference image = feedbackRef.child(feedback.getId() + ".jpg");
+        StorageReference image = feedbackRef.child(feedbackId + ".jpg");
 
         // Delete the file
         image.delete().addOnSuccessListener(aVoid -> {
@@ -64,7 +73,12 @@ public class FirebaseStorageHelper {
         });
     }
 
-    public static void loadImage(final Feedback feedback) {
+    /**
+     * Load the image for the given Feedback and set the Photo
+     *
+     * @param feedback the feedback
+     */
+    public static void loadImage(Feedback feedback) {
         StorageReference image = feedbackRef.child(feedback.getId() + ".jpg");
         System.out.println(image);
 
@@ -77,9 +91,8 @@ public class FirebaseStorageHelper {
             feedback.getPhoto();
             //feedback.setImageBytes(bytes);
             // Data for "images/island.jpg" is returns, use this as needed
-        }).addOnFailureListener(exception -> {
-            exception.printStackTrace();
-            System.out.println(exception);
+        }).addOnFailureListener(e -> {
+            e.printStackTrace();
             System.out.println("unsuccessful loaded image");
             // Handle any errors
         });

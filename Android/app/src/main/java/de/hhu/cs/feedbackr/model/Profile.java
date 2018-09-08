@@ -25,12 +25,6 @@ public class Profile implements Serializable {
         return instance;
     }
 
-    public Profile(Profile mProfile, boolean attach) {
-        this.age = mProfile.age;
-        this.gender = mProfile.gender;
-        this.attach = attach;
-    }
-
     public static synchronized void setInstanceProfile(Profile profile) {
         instance = profile;
     }

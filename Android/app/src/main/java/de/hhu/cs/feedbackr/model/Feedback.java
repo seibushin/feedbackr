@@ -1,16 +1,10 @@
 package de.hhu.cs.feedbackr.model;
 
-
 import android.databinding.BaseObservable;
 import android.databinding.Bindable;
-import android.databinding.BindingAdapter;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
 import android.location.Location;
-import android.widget.ImageView;
 
-import de.hhu.cs.feedbackr.BR;
 import com.google.firebase.database.Exclude;
 import com.google.firebase.database.IgnoreExtraProperties;
 
@@ -18,12 +12,11 @@ import java.io.Serializable;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Calendar;
 import java.util.Locale;
-import java.util.Objects;
+
+import de.hhu.cs.feedbackr.BR;
 
 /**
- * <p>
  * Feedback gets created by Users
  */
 
@@ -55,13 +48,12 @@ public class Feedback extends BaseObservable implements Serializable {
      * Creates an Feedback Object
      *
      * @param location The Location the User is at
-     * @param calendar A Calendar Object to get Date and Time of the Feedback
      * @param city     A String of City the User has send the Feedback from
      */
-    public Feedback(Location location, Calendar calendar, String city, boolean positive, String id) {
+    public Feedback(Location location, String city, boolean positive, String id) {
         mLatitude = location.getLatitude();
         mLongitude = location.getLongitude();
-        mDate = calendar.getTimeInMillis();
+        mDate = location.getTime();
         mCity = city;
         mPositive = positive;
         mDetails = "";
@@ -74,6 +66,7 @@ public class Feedback extends BaseObservable implements Serializable {
         return mLatitude;
     }
 
+    @SuppressWarnings("unused")
     public void setLatitude(double latitude) {
         mLatitude = latitude;
     }
@@ -82,6 +75,7 @@ public class Feedback extends BaseObservable implements Serializable {
         return mLongitude;
     }
 
+    @SuppressWarnings("unused")
     public void setLongitude(double longitude) {
         mLongitude = longitude;
     }
@@ -90,6 +84,7 @@ public class Feedback extends BaseObservable implements Serializable {
         return mCity;
     }
 
+    @SuppressWarnings("unused")
     public void setCity(String city) {
         mCity = city;
     }
@@ -126,6 +121,7 @@ public class Feedback extends BaseObservable implements Serializable {
 
     /**
      * Never Used in Code but essential to Firebase
+     *
      * @return current Date
      */
     @SuppressWarnings("unused")
@@ -135,6 +131,7 @@ public class Feedback extends BaseObservable implements Serializable {
 
     /**
      * Used By Firebase
+     *
      * @param date UNIX Timestamp
      */
     @SuppressWarnings("unused")
@@ -143,7 +140,7 @@ public class Feedback extends BaseObservable implements Serializable {
     }
 
     public String getCategory() {
-        if(mCategory == null){
+        if (mCategory == null) {
             setCategory(isPositive() ? CategoryConverter.POS_GENERAL : CategoryConverter.NEG_GENERAL);
         }
         return mCategory;
@@ -157,7 +154,7 @@ public class Feedback extends BaseObservable implements Serializable {
         return mId;
     }
 
-    public void setId(String id){
+    public void setId(String id) {
         mId = id;
     }
 
@@ -181,6 +178,7 @@ public class Feedback extends BaseObservable implements Serializable {
         return mHasPhoto;
     }
 
+    @SuppressWarnings("unused")
     public void setHasPhoto(boolean mHasPhoto) {
         this.mHasPhoto = mHasPhoto;
     }
@@ -220,11 +218,7 @@ public class Feedback extends BaseObservable implements Serializable {
     public void setPhoto(Bitmap photo) {
         System.out.println("new Photo " + photo);
         this.mPhoto = photo;
-        if (this.mPhoto != null) {
-            this.mHasPhoto = true;
-        } else {
-            this.mHasPhoto= false;
-        }
+        this.mHasPhoto = this.mPhoto != null;
     }
 
     /**
@@ -237,7 +231,7 @@ public class Feedback extends BaseObservable implements Serializable {
     @Override
     public int hashCode() {
         Object[] id = {mId};
-        return  Arrays.hashCode(id);
+        return Arrays.hashCode(id);
     }
 
     @Override

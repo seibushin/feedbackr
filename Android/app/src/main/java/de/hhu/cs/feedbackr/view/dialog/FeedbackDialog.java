@@ -10,6 +10,8 @@ import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
 
+import java.util.Objects;
+
 import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.databinding.DialogFeedbackBinding;
 import de.hhu.cs.feedbackr.model.Feedback;
@@ -46,30 +48,23 @@ public class FeedbackDialog extends DialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mFeedback = (Feedback) getArguments().get(FEEDBACK_KEY);
+        mFeedback = (Feedback) Objects.requireNonNull(getArguments()).get(FEEDBACK_KEY);
         mEditable = getArguments().getBoolean(USER_KEY);
     }
 
     @NonNull
     @Override
     public Dialog onCreateDialog(Bundle savedInstanceState) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-
         DialogFeedbackBinding binding = DataBindingUtil.inflate(LayoutInflater.from(getContext()), R.layout.dialog_feedback, null, false);
+        binding.setFeedback(mFeedback);
 
+        AlertDialog.Builder builder = new AlertDialog.Builder(Objects.requireNonNull(getActivity()));
         builder.setView(binding.getRoot());
 
-        //If the Feedback is from the User add an Edit Button
+        // If the Feedback is from the user add an edit button
         if (mEditable) {
-            builder.setPositiveButton(R.string.edit, new DialogInterface.OnClickListener() {
-                @Override
-                public void onClick(DialogInterface dialogInterface, int i) {
-                    ((MainActivity) getActivity()).switchToFeedbackDetail(mFeedback);
-                }
-            });
+            builder.setPositiveButton(R.string.edit, (dialogInterface, i) -> ((MainActivity) getActivity()).switchToFeedbackDetail(mFeedback));
         }
-
-        binding.setFeedback(mFeedback);
 
         return builder.create();
     }

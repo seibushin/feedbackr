@@ -1,16 +1,12 @@
 package de.hhu.cs.feedbackr.firebase;
 
-import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.crashlytics.android.Crashlytics;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.crash.FirebaseCrash;
-import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -36,6 +32,8 @@ public class FirebaseHelper {
     private static final DatabaseReference mUsersRef = mRootRef.child("users");
     private static final DatabaseReference mGeofireRef = mRootRef.child("geofire");
 
+    private static final GeoFire geoFire = new GeoFire(mGeofireRef);
+
     /**
      * Saves a Feedback to Firebase
      *
@@ -49,7 +47,7 @@ public class FirebaseHelper {
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user == null) {
                 Log.i("NO CURRENT USER TAG", "User is null");
-                FirebaseCrash.log("User is null");
+                Crashlytics.log("User is null");
                 return;
             }
 
@@ -64,17 +62,18 @@ public class FirebaseHelper {
 
             geoFire.setLocation(feedback.getId(), new GeoLocation(feedback.getLatitude(), feedback.getLongitude()), (key, error) -> {
                 if (error != null) {
-                    FirebaseCrash.report(new Throwable("There was an error saving the location to GeoFire: " + error));
+                    Crashlytics.logException(new Throwable("There was an error saving the location to GeoFire: " + error));
                 }
             });
 
+            // upload image
             FirebaseStorageHelper.uploadImage(feedback);
         });
     }
 
     /**
      *
-     * @param profile
+     * @param profile the users profile
      */
     public static void saveProfile(Profile profile) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
@@ -104,6 +103,9 @@ public class FirebaseHelper {
         // remove geofire
         GeoFire geoFire = new GeoFire(mGeofireRef);
         geoFire.removeLocation(feedback.getId());
+
+        // delete image
+        FirebaseStorageHelper.deleteImage(feedback.getId());
     }
 
     /**
@@ -115,7 +117,11 @@ public class FirebaseHelper {
         return mFeedbackRef.push().getKey();
     }
 
-    public static DatabaseReference getFeedback() {
+    public static GeoFire getGeofire() {
+        return geoFire;
+    }
+
+    public static DatabaseReference getFeedbackRef() {
         return mFeedbackRef;
     }
 
@@ -126,9 +132,5 @@ public class FirebaseHelper {
             return null;
         }
         return mUsersRef.child(user.getUid());
-    }
-
-    public static DatabaseReference getGeofire() {
-        return mGeofireRef;
     }
 }

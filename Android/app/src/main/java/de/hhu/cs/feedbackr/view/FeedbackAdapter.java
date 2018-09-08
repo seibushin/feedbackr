@@ -1,6 +1,7 @@
 package de.hhu.cs.feedbackr.view;
 
 import android.databinding.DataBindingUtil;
+import android.support.annotation.NonNull;
 import android.support.v7.util.SortedList;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.util.SortedListAdapterCallback;
@@ -11,11 +12,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.ValueEventListener;
 
 import java.util.HashMap;
-import java.util.concurrent.Executors;
+import java.util.Objects;
 
 import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.databinding.FeedbackHolderBinding;
@@ -30,19 +29,19 @@ import de.hhu.cs.feedbackr.view.activity.MainActivity;
 
 public class FeedbackAdapter extends RecyclerView.Adapter {
     private HashMap<String, Feedback> data = new HashMap<>();
-    private final SortedList<Feedback> mFeedback = new SortedList(Feedback.class, new SortedListAdapterCallback(this) {
+    private final SortedList<Feedback> mFeedback = new SortedList<>(Feedback.class, new SortedListAdapterCallback<Feedback>(this) {
         @Override
-        public int compare(Object o1, Object o2) {
-            return (((Feedback) o2).getDate().compareTo(((Feedback) o1).getDate()));
+        public int compare(Feedback o1, Feedback o2) {
+            return o2.getDate().compareTo(o1.getDate());
         }
 
         @Override
-        public boolean areContentsTheSame(Object oldItem, Object newItem) {
+        public boolean areContentsTheSame(Feedback oldItem, Feedback newItem) {
             return false;
         }
 
         @Override
-        public boolean areItemsTheSame(Object item1, Object item2) {
+        public boolean areItemsTheSame(Feedback item1, Feedback item2) {
             return item1 == item2;
         }
     });
@@ -52,9 +51,9 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
      */
     public FeedbackAdapter() {
         // get all feedback of the user
-        FirebaseHelper.getFeedback().orderByChild("owner").equalTo(FirebaseAuth.getInstance().getCurrentUser().getUid()).addChildEventListener(new ChildEventListener() {
+        FirebaseHelper.getFeedbackRef().orderByChild("owner").equalTo(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()).addChildEventListener(new ChildEventListener() {
             @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
                 Feedback feedback = dataSnapshot.getValue(Feedback.class);
 
                 if (feedback != null) {
@@ -65,7 +64,7 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
             }
 
             @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, String s) {
                 Feedback feedback = dataSnapshot.getValue(Feedback.class);
 
                 if (feedback != null) {
@@ -76,7 +75,7 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
             }
 
             @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
                 //Delete the Feedback from the List
                 String key = dataSnapshot.getKey();
                 if (data.containsKey(key)) {
@@ -86,11 +85,11 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
             }
 
             @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, String s) {
             }
 
             @Override
-            public void onCancelled(DatabaseError databaseError) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
             }
         });
     }
@@ -102,8 +101,9 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
      * @param viewType ViewType
      * @return ViewHolder is instance of FeedbackHolder
      */
+    @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         FeedbackHolderBinding binding = DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), R.layout.feedback_holder, parent, false);
         return new FeedbackHolder(binding);
     }
@@ -115,13 +115,11 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
      * @param position Position of the Feedback in the List
      */
     @Override
-    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, int position) {
         FeedbackHolderBinding binding = ((FeedbackHolder) holder).getBinding();
         final Feedback feedback = mFeedback.get(position);
         binding.setFeedback(feedback);
-        binding.getRoot().setOnClickListener(view -> {
-            ((MainActivity) view.getContext()).switchToFeedbackDetail(feedback);
-        });
+        binding.getRoot().setOnClickListener(view -> ((MainActivity) view.getContext()).switchToFeedbackDetail(feedback));
         binding.feedbackHolderImg.setImageResource(CategoryConverter.tagToDrawable(feedback.getCategory()));
     }
 

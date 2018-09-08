@@ -1,13 +1,9 @@
 package de.hhu.cs.feedbackr.view.activity;
 
-import android.graphics.PorterDuff;
-import android.graphics.drawable.Drawable;
 import android.os.Bundle;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.webkit.WebView;
@@ -50,7 +46,7 @@ public class AboutActivity extends AppCompatActivity {
     /**
      * Show the about dialog
      *
-     * @param view
+     * @param view unused
      */
     public void showLicense(View view) {
         // get the webView and load the about info

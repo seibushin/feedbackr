@@ -9,7 +9,6 @@ import de.hhu.cs.feedbackr.R;
  */
 
 public class CategoryConverter {
-
     final public static String POS_GENERAL = "POS_GENERAL";
     final private static String POS_SIT = "POS_SIT";
     final private static String POS_TOILET = "POS_TOILET";
@@ -25,47 +24,45 @@ public class CategoryConverter {
     final private static String NEG_WALKING = "NEG_WALKING";
     final private static String NEG_GRAFFITI = "NEG_GRAFFITI";
 
-
     /**
-     *
-     * @param positive Kind of the Feedback
-     * @param context Context to get String Resources
+     * @param positive  Kind of the Feedback
+     * @param context   Context to get String Resources
      * @param selection Selected String
      * @return Firebase Accepted Category String
      */
-    public static String stringToTag(boolean positive, Context context, String selection){
+    public static String stringToTag(boolean positive, Context context, String selection) {
         //Switch Statement does not work with Strings from Resources
         //Divide The Request in the Positive and Negative Categories
         //to Minimize the Amount of if-else Statements
-        if(positive){
-            if(selection.equals(context.getString(R.string.cat_pos_general))){
+        if (positive) {
+            if (selection.equals(context.getString(R.string.cat_pos_general))) {
                 return POS_GENERAL;
-            } else if(selection.equals(context.getString(R.string.cat_pos_sit))){
+            } else if (selection.equals(context.getString(R.string.cat_pos_sit))) {
                 return POS_SIT;
-            } else if(selection.equals(context.getString(R.string.cat_pos_toilet))){
+            } else if (selection.equals(context.getString(R.string.cat_pos_toilet))) {
                 return POS_TOILET;
-            } else if(selection.equals(context.getString(R.string.cat_pos_disability_access))){
+            } else if (selection.equals(context.getString(R.string.cat_pos_disability_access))) {
                 return POS_DISABILITY;
-            } else if(selection.equals(context.getString(R.string.cat_pos_wifi))){
+            } else if (selection.equals(context.getString(R.string.cat_pos_wifi))) {
                 return POS_WIFI;
-            } else if(selection.equals(context.getString(R.string.cat_pos_eat_drink))){
+            } else if (selection.equals(context.getString(R.string.cat_pos_eat_drink))) {
                 return POS_EAT_DRINK;
-            } else if(selection.equals(context.getString(R.string.cat_pos_nice_view))){
+            } else if (selection.equals(context.getString(R.string.cat_pos_nice_view))) {
                 return POS_VIEW;
             }
             return POS_GENERAL;
-        } else{
-            if(selection.equals(context.getString(R.string.cat_neg_general))){
+        } else {
+            if (selection.equals(context.getString(R.string.cat_neg_general))) {
                 return NEG_GENERAL;
-            } else if(selection.equals(context.getString(R.string.cat_neg_dark))){
+            } else if (selection.equals(context.getString(R.string.cat_neg_dark))) {
                 return NEG_DARK;
-            } else if(selection.equals(context.getString(R.string.cat_neg_dirty))){
+            } else if (selection.equals(context.getString(R.string.cat_neg_dirty))) {
                 return NEG_DIRTY;
-            } else if(selection.equals(context.getString(R.string.cat_neg_people))){
+            } else if (selection.equals(context.getString(R.string.cat_neg_people))) {
                 return NEG_PEOPLE;
-            } else if(selection.equals(context.getString(R.string.cat_neg_walking_friendly))){
+            } else if (selection.equals(context.getString(R.string.cat_neg_walking_friendly))) {
                 return NEG_WALKING;
-            } else if(selection.equals(context.getString(R.string.cat_neg_graffiti))){
+            } else if (selection.equals(context.getString(R.string.cat_neg_graffiti))) {
                 return NEG_GRAFFITI;
             }
             return NEG_GENERAL;
@@ -74,11 +71,12 @@ public class CategoryConverter {
 
     /**
      * Gets A Firebase conform Category Tag and converts it to a Localized String
+     *
      * @param tag Firebase Category
      * @return Localized String Resource Tag
      */
-    public static int tagToString(String tag){
-        switch (tag){
+    public static int tagToString(String tag) {
+        switch (tag) {
             case POS_GENERAL:
                 return R.string.cat_pos_general;
             case POS_SIT:
@@ -113,11 +111,12 @@ public class CategoryConverter {
 
     /**
      * Returns a Icon for the category
+     *
      * @param tag Firebase Category Tag
      * @return Drawable Id of Category Icon
      */
-    public static int tagToDrawable(String tag){
-        switch (tag){
+    public static int tagToDrawable(String tag) {
+        switch (tag) {
             case POS_GENERAL:
                 return R.drawable.ic_thumb_up_white_24dp;
             case POS_SIT:
@@ -132,7 +131,6 @@ public class CategoryConverter {
                 return R.drawable.ic_restaurant_black_24dp;
             case POS_VIEW:
                 return R.drawable.ic_view_black_24dp;
-
             case NEG_GENERAL:
                 return R.drawable.ic_thumb_down_white_24dp;
             case NEG_DARK:
@@ -152,6 +150,7 @@ public class CategoryConverter {
 
     /**
      * Returns Default Category
+     *
      * @param kind Kind of Feedback
      * @return POS_GENERAL for positive Feedback and NEG_GENERAL for negative Feedback
      */

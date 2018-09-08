@@ -1,5 +1,6 @@
 package de.hhu.cs.feedbackr.view.activity;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
@@ -19,15 +20,14 @@ import android.view.View;
 import android.widget.ImageView;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.IOException;
+import java.util.Objects;
 
 import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.databinding.DialogSwitchBinding;
-import de.hhu.cs.feedbackr.model.Feedback;
 import de.hhu.cs.feedbackr.firebase.FirebaseHelper;
 import de.hhu.cs.feedbackr.firebase.FirebaseStorageHelper;
+import de.hhu.cs.feedbackr.model.Feedback;
 import de.hhu.cs.feedbackr.view.fragment.FeedbackEditFragment;
 
 /**
@@ -59,7 +59,7 @@ public class FeedbackEditActivity extends AppCompatActivity {
         assert getSupportActionBar() != null;
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
-        mFeedbackEditFragment = FeedbackEditFragment.newInstance((Feedback) getIntent().getExtras().get("Feedback"));
+        mFeedbackEditFragment = FeedbackEditFragment.newInstance((Feedback) Objects.requireNonNull(getIntent().getExtras()).get("Feedback"));
         getSupportFragmentManager().beginTransaction().add(R.id.feedback_detail_frame, mFeedbackEditFragment).commit();
 
         imageDialog = new AlertDialog.Builder(this).create();
@@ -144,14 +144,14 @@ public class FeedbackEditActivity extends AppCompatActivity {
     /**
      * Display a Dialog showing the image for the feedback
      *
-     * @param view
+     * @param view unused
      */
     public void showImage(View view) {
         if (mFeedbackEditFragment.getFeedback().isHasPhoto()) {
             if (imageDialog.isShowing()) {
-                ((ImageView) imageDialog.findViewById(R.id.feedback_image)).setImageBitmap(mFeedbackEditFragment.getFeedback().getPhoto());
+                ((ImageView) Objects.requireNonNull(imageDialog.findViewById(R.id.feedback_image))).setImageBitmap(mFeedbackEditFragment.getFeedback().getPhoto());
             } else {
-                View root = LayoutInflater.from(this).inflate(R.layout.dialog_image, null);
+                @SuppressLint("InflateParams") View root = LayoutInflater.from(this).inflate(R.layout.dialog_image, null);
 
                 ((ImageView) root.findViewById(R.id.feedback_image)).setImageBitmap(mFeedbackEditFragment.getFeedback().getPhoto());
 
@@ -161,9 +161,7 @@ public class FeedbackEditActivity extends AppCompatActivity {
                         .setView(root)
                         .create();
 
-                root.findViewById(R.id.back).setOnClickListener(v -> {
-                    imageDialog.cancel();
-                });
+                root.findViewById(R.id.back).setOnClickListener(v -> imageDialog.cancel());
 
                 imageDialog.show();
             }
@@ -175,30 +173,25 @@ public class FeedbackEditActivity extends AppCompatActivity {
     /**
      * Remove the image from the object and delete it from the database
      *
-     * @param view
+     * @param view unused
      */
     public void removePicture(View view) {
         AlertDialog removeHint = new AlertDialog.Builder(this)
                 .setTitle(R.string.remove_image)
                 .setPositiveButton(R.string.remove_image_pos, (dialog, which) -> {
                     // if the call is unsuccessful the image will remain in the database
-                    // todo check better solution
-                    // check feedback object @hasImage
-                    // todo delete local image
                     File image = createImageFile();
                     if (image.delete()) {
-                        FirebaseStorageHelper.deleteImage(mFeedbackEditFragment.getFeedback());
+                        FirebaseStorageHelper.deleteImage(mFeedbackEditFragment.getFeedback().getId());
                         mFeedbackEditFragment.setFeedbackPhoto(null);
-                        ((ImageView) imageDialog.findViewById(R.id.feedback_image)).setImageBitmap(null);
+                        ((ImageView) Objects.requireNonNull(imageDialog.findViewById(R.id.feedback_image))).setImageBitmap(null);
                     }
 
                     // close the dialogs for the image
                     dialog.dismiss();
                     imageDialog.dismiss();
                 })
-                .setNegativeButton(R.string.remove_image_neg, (dialog, which) -> {
-                    dialog.dismiss();
-                })
+                .setNegativeButton(R.string.remove_image_neg, (dialog, which) -> dialog.dismiss())
                 .create();
 
         removeHint.show();
