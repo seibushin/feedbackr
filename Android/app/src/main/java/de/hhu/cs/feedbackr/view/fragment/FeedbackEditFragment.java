@@ -28,7 +28,9 @@ import android.widget.ImageView;
 import android.widget.Switch;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.MapView;
+import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -49,7 +51,7 @@ import de.hhu.cs.feedbackr.model.Profile;
 /**
  * A Fragment used To Display a Feedback in Detail and Edit it
  */
-public class FeedbackEditFragment extends Fragment {
+public class FeedbackEditFragment extends Fragment implements OnMapReadyCallback {
     private Feedback mFeedback;
 
     private MapView mMapView;
@@ -127,19 +129,12 @@ public class FeedbackEditFragment extends Fragment {
 
         View view = binding.getRoot();
 
+
+        // todo this takes super long
         //Get The MapView and Put a GoogleMap inside
         mMapView = binding.mapViewFeedbackDet;
         mMapView.onCreate(savedInstanceState);
-        mMapView.getMapAsync(googleMap -> {
-            //Puts a Marker on the Map where the Feedback was Send Add
-            LatLng coordinates = new LatLng(mFeedback.getLatitude(), mFeedback.getLongitude());
-            MarkerOptions marker = new MarkerOptions().position(coordinates)
-                    .icon(BitmapDescriptorFactory.fromBitmap(getBitmap(getContext(), mFeedback.isPositive(), mFeedback.getCategory())));
-            mMarker = googleMap.addMarker(marker);
-
-            googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(coordinates, 15));
-            mMapView.onResume();
-        });
+        mMapView.getMapAsync(this);
 
         mAdapter = ArrayAdapter.createFromResource(Objects.requireNonNull(getActivity()),
                 mFeedback.isPositive() ? R.array.positive_array : R.array.negative_array, android.R.layout.simple_spinner_item);
@@ -149,8 +144,7 @@ public class FeedbackEditFragment extends Fragment {
         mSpinner.setAdapter(mAdapter);
 
         if (mFeedback.getCategory() != null) {
-            mSpinner.setSelection(mAdapter.getPosition(getString(
-                    CategoryConverter.tagToString(mFeedback.getCategory()))));
+            mSpinner.setSelection(mAdapter.getPosition(getString(CategoryConverter.tagToString(mFeedback.getCategory()))));
         }
 
         mSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -179,8 +173,6 @@ public class FeedbackEditFragment extends Fragment {
             }
         });
 
-        //updateNearby();
-
         if (mFeedback.isHasPhoto()) {
             // show indicator
 
@@ -196,6 +188,17 @@ public class FeedbackEditFragment extends Fragment {
         }
 
         return view;
+    }
+
+    @Override
+    public void onMapReady(GoogleMap googleMap) {
+        // Puts a Marker on the Map where the Feedback was Send Add
+        LatLng coordinates = new LatLng(mFeedback.getLatitude(), mFeedback.getLongitude());
+        MarkerOptions marker = new MarkerOptions().position(coordinates)
+                .icon(BitmapDescriptorFactory.fromBitmap(getBitmap(getContext(), mFeedback.isPositive(), mFeedback.getCategory())));
+        mMarker = googleMap.addMarker(marker);
+
+        googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(coordinates, 15));
     }
 
     private static class LoadImageTask extends AsyncTask<File, Void, Void> {
@@ -238,7 +241,7 @@ public class FeedbackEditFragment extends Fragment {
             return null;
         }
 
-        interface OnBitmapCreatedListener{
+        interface OnBitmapCreatedListener {
             void onBitmapCreated(Bitmap bitmap);
         }
     }

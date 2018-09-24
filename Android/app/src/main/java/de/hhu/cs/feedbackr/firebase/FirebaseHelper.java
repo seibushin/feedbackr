@@ -102,10 +102,13 @@ public class FirebaseHelper {
 
         // remove geofire
         GeoFire geoFire = new GeoFire(mGeofireRef);
-        geoFire.removeLocation(feedback.getId());
+        // this is a fix due to removeLocation(key) not working as intended
+        geoFire.removeLocation(feedback.getId(), (p1, p2) -> {});
 
         // delete image
-        FirebaseStorageHelper.deleteImage(feedback.getId());
+        if (feedback.isHasPhoto()) {
+            FirebaseStorageHelper.deleteImage(feedback.getId());
+        }
     }
 
     /**

@@ -34,7 +34,7 @@ public class LocationErrorFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_location_error, container, false);
         view.findViewById(R.id.iVRefresh).setOnClickListener(view1 -> {
             //Try to Re-Establish the Connection for GoogleApiClient
-            ((MainActivity) view1.getContext()).makeLocationInit();
+            ((MainActivity) view1.getContext()).makeLocationInit(false);
         });
 
         return view;

@@ -56,8 +56,10 @@
     <string name="save_warning">Unsaved Changes are lost!</string>
     <string name="show">Show</string>
     <string name="hide">Hide</string>
-    <string name="show_hide_public">%s Public Feedback</string>
-    <string name="show_hide_private">%s  my Feedback</string>
+    <string name="show_hide_public">%1$s Public Feedback</string>
+    <string name="show_hide_private">%1$s  my Feedback</string>
+    <string name="show_hide_postive">%1$s positive Feedback</string>
+    <string name="show_hide_negative">%1$s negative Feedback</string>
     <string name="show_hide">Show/Hide</string>
     <string name="switch_feedback">Switch Feedback to %s</string>
     <string name="switch_warning">Switching the Feedback will loose the current Category</string>
@@ -85,6 +87,4 @@
 
     <string name="attach_profile_no_profile">No Profile</string>
     <string name="attach_profile_no_proile_desc">Please edit your profile to be able to attach it.</string>
-    <string name="show_hide_postive">%s positive Feedback</string>
-    <string name="show_hide_negative">%s negative Feedback</string>
 </resources>

@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         //Sets Up View
         setContentView(R.layout.activity_main);
 
-        makeLocationInit();
+        makeLocationInit(false);
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -194,7 +194,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
     /**
      * Initialises the Location listening
      */
-    public void makeLocationInit() {
+    public void makeLocationInit(boolean showFeedback) {
         locationRequest = new LocationRequest();
         locationRequest.setInterval(20000);
         locationRequest.setFastestInterval(10000);
@@ -209,7 +209,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         locationCallback = new LocationCallback() {
             @Override
             public void onLocationResult(LocationResult locationResult) {
-                onLocationChanged(locationResult.getLastLocation());
+                onLocationChanged(locationResult.getLastLocation(), false);
             }
         };
 
@@ -221,7 +221,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 // Location settings are satisfied
                 try {
                     // Gets Last Known Location and Time
-                    LocationServices.getFusedLocationProviderClient(this).getLastLocation().addOnSuccessListener(this::onLocationChanged);
+                    LocationServices.getFusedLocationProviderClient(this).getLastLocation().addOnSuccessListener(l -> onLocationChanged(l, showFeedback));
                     //Start the Location Listening
                     startLocationUpdates();
                 } catch (SecurityException ignored) {
@@ -274,19 +274,23 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
      *
      * @param location New Location
      */
-    private void onLocationChanged(Location location) {
+    private void onLocationChanged(Location location, boolean showFeedback) {
         if (isBetterLocation(location)) {
             currentLocation = location;
             getCityName();
+
+            if (showFeedback) {
+                bottomBar.setSelectedItemId(R.id.bottom_feedback);
+            }
         }
     }
 
     /**
      * Determines whether one Location reading is better than the current Location fix
-     *
+     * <p>
      * https://developer.android.com/guide/topics/location/strategies
      *
-     * @param location  The new Location that you want to evaluate
+     * @param location The new Location that you want to evaluate
      */
     protected boolean isBetterLocation(Location location) {
         if (currentLocation == null) {
@@ -389,7 +393,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                         return;
                     }
                     //Start Location Listening
-                    makeLocationInit();
+                    makeLocationInit(false);
                 } else {
                     //Switches To Error Fragment because Permission for Location was Denied
                     switchToErrorFragment();
@@ -412,9 +416,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 switch (resultCode) {
                     case Activity.RESULT_OK:
                         //Start Location Listening
-                        makeLocationInit();
-                        // switch to Feedback buttons
-                        bottomBar.setSelectedItemId(R.id.bottom_feedback);
+                        makeLocationInit(true);
                         break;
                     case Activity.RESULT_CANCELED:
                         //Switch to Error
@@ -469,9 +471,13 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 }
                 break;
         }
-        rm.commit();
+        if (currentLocation != null) {
+            rm.commit();
+            item.setChecked(true);
+        } else {
+            createToast(getString(R.string.noLocation), Toast.LENGTH_SHORT);
+        }
 
-        item.setChecked(true);
         return false;
     }
 

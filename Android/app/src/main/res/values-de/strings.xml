@@ -44,8 +44,10 @@
     <string name="hide">verstecken</string>
     <string name="show">zeigen</string>
     <string name="show_hide">zeigen/verstecken</string>
-    <string name="show_hide_private">Mein Feedback %s</string>
-    <string name="show_hide_public">Öffentliches Feedback %s</string>
+    <string name="show_hide_private">Mein Feedback %1$s</string>
+    <string name="show_hide_public">Öffentliches Feedback %1$s</string>
+    <string name="show_hide_postive">Positives Feedback %1$s</string>
+    <string name="show_hide_negative">Negatives Feedback %1$s</string>
     <string name="switch_feedback">Wechsel Feedback zu %s</string>
     <string name="switch_warning">Wechseln des Feedbacks löscht die aktuelle Kategorie</string>
     <string name="switch_word">Wechseln</string>
@@ -68,6 +70,4 @@
     <string name="dialog_image_title">Bild zum Feedback</string>
     <string name="attach_profile_no_profile">Kein Profil</string>
     <string name="attach_profile_no_proile_desc">Bitte bearbeite dein Profil um es anhängen zu können.</string>
-    <string name="show_hide_postive">%s positives Feedback</string>
-    <string name="show_hide_negative">%s negatives Feedback</string>
 </resources>
