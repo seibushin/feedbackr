@@ -1,12 +1,19 @@
 package de.hhu.cs.feedbackr.view.activity;
 
+import android.app.ActionBar;
+import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.AttributeSet;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.webkit.WebView;
+import android.widget.AbsoluteLayout;
+import android.widget.FrameLayout;
+import android.widget.LinearLayout;
 
 import de.hhu.cs.feedbackr.R;
 
@@ -28,9 +35,6 @@ public class AboutActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         assert getSupportActionBar() != null;
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-        WebView webView = findViewById(R.id.about_web);
-        webView.loadUrl("file:///android_asset/about.html");
     }
 
     @Override
@@ -51,8 +55,8 @@ public class AboutActivity extends AppCompatActivity {
     public void showLicense(View view) {
         // get the webView and load the about info
         WebView about = new WebView(getApplicationContext());
-        //WebView about = (WebView) LayoutInflater.from(getApplicationContext()).inflate(R.layout.dialog_about, null);
         about.loadUrl("file:///android_asset/license.html");
+        about.setHorizontalScrollBarEnabled(false);
 
         // show the dialog
         new AlertDialog.Builder(this)

@@ -74,4 +74,10 @@
     <string name="remove_image_neg">Abbrechen</string>
     <string name="remove_image_pos">Entfernen</string>
     <string name="remove_image">Bild entfernen</string>
+
+    <string name="about_info">
+        Feedbackr wurde am Lehrstuhl für Programmiersprachen und Softwaretechnik der Heinrich-Heine-Universität Düsseldorf (stups.hhu.de) entwickelt.
+        \n
+        \nSollten Sie fragen zu dem Projekt haben können Sie sich gerne an @hhu.de wenden.
+    </string>
 </resources>
