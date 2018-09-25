@@ -28,6 +28,7 @@ import de.hhu.cs.feedbackr.view.activity.MainActivity;
  */
 
 public class FeedbackAdapter extends RecyclerView.Adapter {
+    private OnSizeChangedListener listener;
     private HashMap<String, Feedback> data = new HashMap<>();
     private final SortedList<Feedback> mFeedback = new SortedList<>(Feedback.class, new SortedListAdapterCallback<Feedback>(this) {
         @Override
@@ -46,10 +47,12 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
         }
     });
 
+
     /**
      * Creates the adapter
      */
-    public FeedbackAdapter() {
+    public FeedbackAdapter(OnSizeChangedListener listener2) {
+        this.listener = listener2;
         // get all feedback of the user
         FirebaseHelper.getFeedbackRef().orderByChild("owner").equalTo(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()).addChildEventListener(new ChildEventListener() {
             @Override
@@ -60,6 +63,7 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
                     // add Feedback
                     mFeedback.add(feedback);
                     data.put(feedback.getId(), feedback);
+                    listener.changed();
                 }
             }
 
@@ -81,6 +85,7 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
                 if (data.containsKey(key)) {
                     mFeedback.remove(data.remove(key));
                     notifyDataSetChanged();
+                    listener.changed();
                 }
             }
 
@@ -129,5 +134,9 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
     @Override
     public int getItemCount() {
         return mFeedback.size();
+    }
+
+    public interface OnSizeChangedListener {
+        void changed();
     }
 }

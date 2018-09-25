@@ -11,6 +11,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
 
 import java.util.Objects;
 
@@ -23,6 +24,7 @@ import de.hhu.cs.feedbackr.view.FeedbackAdapter;
  */
 public class FeedbacksFragment extends Fragment {
     private RecyclerView mFeedbackLayout;
+    private LinearLayout noFeedbackWrapper;
 
     public FeedbacksFragment() {
         // Required empty public constructor
@@ -47,6 +49,7 @@ public class FeedbacksFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_feedbacks, container, false);
 
         mFeedbackLayout = view.findViewById(R.id.profile_feedback);
+        noFeedbackWrapper = view.findViewById(R.id.no_feedback_wrapper);
 
         return view;
     }
@@ -55,13 +58,23 @@ public class FeedbacksFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         getFeedbackList();
+        showIndicator();
+    }
+
+    private void showIndicator() {
+        if (mFeedbackLayout.getAdapter().getItemCount() <= 0) {
+            // show indicator
+            noFeedbackWrapper.setVisibility(View.VISIBLE);
+        } else {
+            noFeedbackWrapper.setVisibility(View.INVISIBLE);
+        }
     }
 
     /**
      * Initializes the RecyclerView
      */
     private void getFeedbackList() {
-        mFeedbackLayout.setAdapter(new FeedbackAdapter());
+        mFeedbackLayout.setAdapter(new FeedbackAdapter(() -> showIndicator()));
         mFeedbackLayout.setNestedScrollingEnabled(true);
         mFeedbackLayout.setLayoutManager(new LinearLayoutManager(getActivity()));
         mFeedbackLayout.addItemDecoration(new DividerItemDecoration(Objects.requireNonNull(getContext()), DividerItemDecoration.VERTICAL));

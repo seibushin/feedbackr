@@ -77,8 +77,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         //Sets Up View
         setContentView(R.layout.activity_main);
 
-        makeLocationInit(false);
-
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
@@ -86,23 +84,29 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         bottomBar = findViewById(R.id.bottom_navigation);
         bottomBar.setOnNavigationItemSelectedListener(this);
 
+        makeLocationInit(false);
         getSupportFragmentManager().beginTransaction().add(R.id.main_frame, new FeedbackSendFragment(), "SEND").commit();
+        updateValuesFromBundle(savedInstanceState);
+    }
 
+    /**
+     * Try to authenticate the user for firebase
+     */
+    private void authFirebase() {
         // authenticates the user anonymously for firebase
         final FirebaseAuth auth = FirebaseAuth.getInstance();
         auth.signInAnonymously()
                 .addOnCompleteListener(this, task -> {
                     if (!task.isSuccessful()) {
-                        System.out.println("LOGIN FAILED");
+                        Objects.requireNonNull(task.getException()).printStackTrace();
                         // sign in failed
                         createToast(getString(R.string.auth_failed), Toast.LENGTH_LONG);
                         Crashlytics.logException(new Throwable("Authentication failed - " + task.getException()));
                     } else {
+                        Profile.setAuth(true);
                         getProfile();
                     }
                 });
-
-        updateValuesFromBundle(savedInstanceState);
     }
 
     /**
@@ -142,6 +146,8 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         if (currentLocation == null) {
             createToast(getString(R.string.noLocation), Toast.LENGTH_LONG);
             Crashlytics.logException(new Throwable("Try to sendFeedback but currentLocation is null"));
+        } else if (!Profile.isAuth()) {
+            createToast(getString(R.string.noAuth), Toast.LENGTH_SHORT);
         } else {
             Feedback feedback = new Feedback(currentLocation, mCurrentCity, kind, feedbackId);
 
@@ -471,11 +477,13 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
                 }
                 break;
         }
-        if (currentLocation != null) {
+        if (currentLocation == null) {
+            createToast(getString(R.string.noLocation), Toast.LENGTH_SHORT);
+        } else if (!Profile.isAuth()) {
+            createToast(getString(R.string.noAuth), Toast.LENGTH_SHORT);
+        } else {
             rm.commit();
             item.setChecked(true);
-        } else {
-            createToast(getString(R.string.noLocation), Toast.LENGTH_SHORT);
         }
 
         return false;
@@ -497,7 +505,11 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         // Handle navigation view item clicks here.
         switch (item.getItemId()) {
             case R.id.profile:
-                intent = new Intent(this, ProfileActivity.class);
+                if (!Profile.isAuth()) {
+                    createToast(getString(R.string.noAuth), Toast.LENGTH_SHORT);
+                } else {
+                    intent = new Intent(this, ProfileActivity.class);
+                }
                 break;
             case R.id.about:
                 intent = new Intent(this, AboutActivity.class);
@@ -522,5 +534,14 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         savedInstanceState.putParcelable(LOCATION_KEY, currentLocation);
         savedInstanceState.putInt(CURRENT_BOTTOM_TAB_SELECTED_KEY, mBottomBarPosition);
         super.onSaveInstanceState(savedInstanceState);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (!Profile.isAuth()) {
+            authFirebase();
+        }
     }
 }

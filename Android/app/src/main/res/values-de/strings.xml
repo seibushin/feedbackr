@@ -5,7 +5,7 @@
     <string name="feedback">Feedback</string>
     <string name="map">Karte</string>
     <string name="feedbacks">Feedbacks</string>
-    <string name="auth_failed">Authentifikation fehlgeschlagen</string>
+    <string name="auth_failed">Authentifikation fehlgeschlagen - Bitte Netzwerkeinstellungen prüfen und App neustarten</string>
     <string name="save">Speichern</string>
     <string name="feedback_explain">Beschreibe dein Feedback…</string>
     <string name="title_activity_main">Feedbackr</string>
@@ -70,4 +70,8 @@
     <string name="dialog_image_title">Bild zum Feedback</string>
     <string name="attach_profile_no_profile">Kein Profil</string>
     <string name="attach_profile_no_proile_desc">Bitte bearbeite dein Profil um es anhängen zu können.</string>
+    <string name="noAuth">Nicht angemeldet</string>
+    <string name="remove_image_neg">Abbrechen</string>
+    <string name="remove_image_pos">Entfernen</string>
+    <string name="remove_image">Bild entfernen</string>
 </resources>

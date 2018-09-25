@@ -129,11 +129,11 @@ public class FeedbackEditFragment extends Fragment implements OnMapReadyCallback
 
         View view = binding.getRoot();
 
-
-        // todo this takes super long
-        //Get The MapView and Put a GoogleMap inside
+        // Get The MapView and put a GoogleMap inside
         mMapView = binding.mapViewFeedbackDet;
         mMapView.onCreate(savedInstanceState);
+        // the initialization of the service takes a decent amount of time
+        // no fix available, this must be executed on the mainThread
         mMapView.getMapAsync(this);
 
         mAdapter = ArrayAdapter.createFromResource(Objects.requireNonNull(getActivity()),

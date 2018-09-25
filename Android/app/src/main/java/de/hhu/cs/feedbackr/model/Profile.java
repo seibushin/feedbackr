@@ -15,10 +15,20 @@ public class Profile implements Serializable {
 
     private static Profile instance;
 
+    private static boolean auth = false;
+
     /**
      * Empty Constructor for Firebase
      */
     public Profile() {
+    }
+
+    public static boolean isAuth() {
+        return auth;
+    }
+
+    public static void setAuth(boolean auth) {
+        Profile.auth = auth;
     }
 
     public static synchronized Profile getInstance() {
