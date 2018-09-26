@@ -3,19 +3,29 @@ package de.hhu.cs.feedbackr.view.dialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.databinding.DataBindingUtil;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
+import android.widget.ImageView;
 
+import com.google.firebase.storage.StorageReference;
+
+import java.io.File;
 import java.util.Objects;
 
 import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.databinding.DialogFeedbackBinding;
+import de.hhu.cs.feedbackr.firebase.FirebaseStorageHelper;
 import de.hhu.cs.feedbackr.model.Feedback;
 import de.hhu.cs.feedbackr.view.activity.MainActivity;
+import de.hhu.cs.feedbackr.view.fragment.FeedbackEditFragment;
 
 /**
  * Shows A Dialog For a Feedback which displays Information
@@ -28,6 +38,7 @@ public class FeedbackDialog extends DialogFragment {
 
     private Feedback mFeedback;
     private boolean mEditable;
+    private ImageView feedback_photo;
 
     /**
      * Creates a Dialog with Information for a Feedback
@@ -66,6 +77,72 @@ public class FeedbackDialog extends DialogFragment {
             builder.setPositiveButton(R.string.edit, (dialogInterface, i) -> ((MainActivity) getActivity()).switchToFeedbackDetail(mFeedback));
         }
 
+        feedback_photo = binding.feedbackPhoto;
+
+        if (mFeedback.isHasPhoto()) {
+            // show indicator
+
+            // get image file
+            String imageFileName = mFeedback.getId();
+            File storageDir = getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File image = new File(storageDir, imageFileName + ".jpg");
+
+            // load image
+            LoadImageTask loadImageTask = new LoadImageTask(mFeedback);
+            loadImageTask.setOnBitmapCreatedListener(this::setFeedbackPhoto);
+            loadImageTask.execute(image);
+        }
+
         return builder.create();
+    }
+
+    public void setFeedbackPhoto(Bitmap image) {
+        feedback_photo.setImageBitmap(image);
+    }
+
+
+    private static class LoadImageTask extends AsyncTask<File, Void, Void> {
+        private LoadImageTask.OnBitmapCreatedListener onBitmapCreatedListener;
+
+        private Feedback feedback;
+
+        LoadImageTask(Feedback feedback) {
+            this.feedback = feedback;
+        }
+
+        void setOnBitmapCreatedListener(LoadImageTask.OnBitmapCreatedListener onBitmapCreatedListener) {
+            this.onBitmapCreatedListener = onBitmapCreatedListener;
+        }
+
+        @Override
+        protected Void doInBackground(File... files) {
+            System.out.println("LOAD IMAGE IN BACKGROUND");
+
+            // check if image is already downloaded
+            File image = files[0];
+
+            // image does not exist
+            // download it
+            if (!image.exists()) {
+                System.out.println("GET IMAGE FROM FIREBASE");
+                StorageReference load = FirebaseStorageHelper.feedbackRef.child(feedback.getId() + ".jpg");
+                load.getFile(image).addOnSuccessListener(taskSnapshot -> {
+                    System.out.println("test");
+                    Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath());
+                    onBitmapCreatedListener.onBitmapCreated(bitmap);
+                });
+            } else {
+                System.out.println("USE LOCAL IMAGE");
+                // image exists display it
+                Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath());
+                onBitmapCreatedListener.onBitmapCreated(bitmap);
+            }
+
+            return null;
+        }
+
+        interface OnBitmapCreatedListener {
+            void onBitmapCreated(Bitmap bitmap);
+        }
     }
 }
