@@ -1,9 +1,9 @@
 package de.hhu.cs.feedbackr.view.dialog;
 
+import android.animation.Animator;
 import android.animation.AnimatorInflater;
 import android.animation.ValueAnimator;
 import android.app.Dialog;
-import android.content.DialogInterface;
 import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -15,13 +15,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.Window;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
-import android.widget.PopupWindow;
 
 import com.google.firebase.storage.StorageReference;
 
@@ -33,7 +27,6 @@ import de.hhu.cs.feedbackr.databinding.DialogFeedbackBinding;
 import de.hhu.cs.feedbackr.firebase.FirebaseStorageHelper;
 import de.hhu.cs.feedbackr.model.Feedback;
 import de.hhu.cs.feedbackr.view.activity.MainActivity;
-import de.hhu.cs.feedbackr.view.fragment.FeedbackEditFragment;
 
 /**
  * Shows A Dialog For a Feedback which displays Information
@@ -50,6 +43,8 @@ public class FeedbackDialog extends DialogFragment {
     private ImageView image_big;
 
     private ValueAnimator valueAnimator;
+
+    private Animator animator;
 
     /**
      * Creates a Dialog with Information for a Feedback
@@ -79,6 +74,8 @@ public class FeedbackDialog extends DialogFragment {
             image_big.getLayoutParams().height = (int) animation.getAnimatedValue();
             image_big.requestLayout();
         });
+
+
     }
 
     @NonNull
@@ -96,8 +93,8 @@ public class FeedbackDialog extends DialogFragment {
         }
 
         feedback_photo = binding.feedbackPhoto;
-        feedback_photo.setOnClickListener(v -> showImage(v));
-        image_big = binding.imageTest;
+        feedback_photo.setOnClickListener(v -> showImage());
+        image_big = binding.imageZoom;
 
         if (mFeedback.isHasPhoto()) {
             // show indicator
@@ -121,8 +118,7 @@ public class FeedbackDialog extends DialogFragment {
         image_big.setImageBitmap(image);
     }
 
-    public void showImage(View view) {
-        System.out.println("SHOW IMAGE");
+    private void showImage() {
 
     }
 
