@@ -1,5 +1,7 @@
 package de.hhu.cs.feedbackr.view.dialog;
 
+import android.animation.AnimatorInflater;
+import android.animation.ValueAnimator;
 import android.app.Dialog;
 import android.content.DialogInterface;
 import android.databinding.DataBindingUtil;
@@ -13,7 +15,13 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.Window;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.ImageView;
+import android.widget.PopupWindow;
 
 import com.google.firebase.storage.StorageReference;
 
@@ -39,6 +47,9 @@ public class FeedbackDialog extends DialogFragment {
     private Feedback mFeedback;
     private boolean mEditable;
     private ImageView feedback_photo;
+    private ImageView image_big;
+
+    private ValueAnimator valueAnimator;
 
     /**
      * Creates a Dialog with Information for a Feedback
@@ -61,6 +72,13 @@ public class FeedbackDialog extends DialogFragment {
         super.onCreate(savedInstanceState);
         mFeedback = (Feedback) Objects.requireNonNull(getArguments()).get(FEEDBACK_KEY);
         mEditable = getArguments().getBoolean(USER_KEY);
+
+        valueAnimator = (ValueAnimator) AnimatorInflater.loadAnimator(getContext(), R.animator.test);
+        valueAnimator.addUpdateListener(animation -> {
+            System.out.println(animation.getAnimatedValue());
+            image_big.getLayoutParams().height = (int) animation.getAnimatedValue();
+            image_big.requestLayout();
+        });
     }
 
     @NonNull
@@ -78,6 +96,8 @@ public class FeedbackDialog extends DialogFragment {
         }
 
         feedback_photo = binding.feedbackPhoto;
+        feedback_photo.setOnClickListener(v -> showImage(v));
+        image_big = binding.imageTest;
 
         if (mFeedback.isHasPhoto()) {
             // show indicator
@@ -98,8 +118,13 @@ public class FeedbackDialog extends DialogFragment {
 
     public void setFeedbackPhoto(Bitmap image) {
         feedback_photo.setImageBitmap(image);
+        image_big.setImageBitmap(image);
     }
 
+    public void showImage(View view) {
+        System.out.println("SHOW IMAGE");
+
+    }
 
     private static class LoadImageTask extends AsyncTask<File, Void, Void> {
         private LoadImageTask.OnBitmapCreatedListener onBitmapCreatedListener;
