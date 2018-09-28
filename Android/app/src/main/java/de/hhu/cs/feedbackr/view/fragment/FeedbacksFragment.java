@@ -74,7 +74,7 @@ public class FeedbacksFragment extends Fragment {
      * Initializes the RecyclerView
      */
     private void getFeedbackList() {
-        mFeedbackLayout.setAdapter(new FeedbackAdapter(() -> showIndicator()));
+        mFeedbackLayout.setAdapter(new FeedbackAdapter(this::showIndicator));
         mFeedbackLayout.setNestedScrollingEnabled(true);
         mFeedbackLayout.setLayoutManager(new LinearLayoutManager(getActivity()));
         mFeedbackLayout.addItemDecoration(new DividerItemDecoration(Objects.requireNonNull(getContext()), DividerItemDecoration.VERTICAL));

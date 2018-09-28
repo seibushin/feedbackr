@@ -11,7 +11,6 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.graphics.Rect;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
@@ -40,7 +39,6 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -54,8 +52,8 @@ import de.hhu.cs.feedbackr.firebase.FirebaseStorageHelper;
 import de.hhu.cs.feedbackr.model.CategoryConverter;
 import de.hhu.cs.feedbackr.model.Feedback;
 import de.hhu.cs.feedbackr.model.Profile;
-import de.hhu.cs.feedbackr.view.Helper;
-import de.hhu.cs.feedbackr.view.LoadImageTask;
+import de.hhu.cs.feedbackr.Helper;
+import de.hhu.cs.feedbackr.LoadImageTask;
 
 /**
  * Activity for Displaying a Feedback and Editing it
@@ -228,7 +226,7 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
     /**
      * https://developer.android.com/training/animation/zoom
      *
-     * @param thumbView
+     * @param thumbView the image thumbnail
      */
     private void zoomImageFromThumb(final ImageView thumbView) {
         // If there's an animation in progress, cancel it

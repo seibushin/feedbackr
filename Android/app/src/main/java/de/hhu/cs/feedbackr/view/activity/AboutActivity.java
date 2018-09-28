@@ -1,19 +1,12 @@
 package de.hhu.cs.feedbackr.view.activity;
 
-import android.app.ActionBar;
-import android.content.Context;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.util.AttributeSet;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.webkit.WebView;
-import android.widget.AbsoluteLayout;
-import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 
 import de.hhu.cs.feedbackr.R;
 

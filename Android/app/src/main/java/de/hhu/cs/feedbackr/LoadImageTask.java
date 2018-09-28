@@ -1,8 +1,10 @@
-package de.hhu.cs.feedbackr.view;
+package de.hhu.cs.feedbackr;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
+import android.os.Handler;
+import android.os.Looper;
 
 import com.google.firebase.storage.StorageReference;
 
@@ -31,21 +33,21 @@ public class LoadImageTask extends AsyncTask<File, Void, Void> {
         // check if image is already downloaded
         File image = files[0];
 
+        Handler handler = new Handler(Looper.getMainLooper());
         // image does not exist
         // download it
         if (!image.exists()) {
             System.out.println("GET IMAGE FROM FIREBASE");
             StorageReference load = FirebaseStorageHelper.feedbackRef.child(feedback.getId() + ".jpg");
             load.getFile(image).addOnSuccessListener(taskSnapshot -> {
-                System.out.println("test");
                 Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath());
-                onBitmapCreatedListener.onBitmapCreated(bitmap);
+                handler.post(() -> onBitmapCreatedListener.onBitmapCreated(bitmap));
             });
         } else {
             System.out.println("USE LOCAL IMAGE");
             // image exists display it
             Bitmap bitmap = BitmapFactory.decodeFile(image.getAbsolutePath());
-            onBitmapCreatedListener.onBitmapCreated(bitmap);
+            handler.post(() -> onBitmapCreatedListener.onBitmapCreated(bitmap));
         }
 
         return null;
