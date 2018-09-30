@@ -147,9 +147,6 @@
                         app:layout_constraintTop_toBottomOf="@+id/imageViewTime"
                         tools:checked="true" />
 
-                    <!-- TODO: Add hints what switches do-->
-
-
                     <Switch
                         android:id="@+id/switchAttach"
                         android:layout_width="0dp"
@@ -229,6 +226,22 @@
                         android:scaleType="centerCrop"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintTop_toTopOf="@+id/textViewSuccess" />
+
+                    <ProgressBar
+                        android:id="@+id/load_img"
+                        style="?android:attr/progressBarStyle"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginLeft="8dp"
+                        android:layout_marginRight="8dp"
+                        android:layout_marginStart="8dp"
+                        app:layout_constraintBottom_toBottomOf="@+id/feedback_photo"
+                        app:layout_constraintEnd_toEndOf="@+id/feedback_photo"
+                        app:layout_constraintStart_toStartOf="@+id/feedback_photo"
+                        app:layout_constraintTop_toTopOf="@+id/feedback_photo"
+                        tools:visibility="invisible" />
 
                     <!--android:src="@{feedback.photo}" -->
 

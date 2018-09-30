@@ -35,6 +35,8 @@ public class Feedback extends BaseObservable implements Serializable {
     private boolean mHasPhoto;
     private String owner;
     private Profile profile;
+    // todo add image as String
+//    private String image;
 
     transient private Bitmap mPhoto;
 
@@ -183,6 +185,27 @@ public class Feedback extends BaseObservable implements Serializable {
         this.mHasPhoto = mHasPhoto;
     }
 
+//    public String getImage() {
+//        return image;
+//    }
+//
+//    public void setImage(String image) {
+//        this.image = image;
+//    }
+
+    @Exclude
+    public Bitmap getPhoto() {
+        System.out.println("Feedback Image: " + mPhoto);
+        return mPhoto;
+    }
+
+    @Exclude
+    public void setPhoto(Bitmap photo) {
+        System.out.println("new Photo " + photo);
+        this.mPhoto = photo;
+        this.mHasPhoto = this.mPhoto != null;
+    }
+
     public String getOwner() {
         return owner;
     }
@@ -206,19 +229,6 @@ public class Feedback extends BaseObservable implements Serializable {
     public String getDay() {
         DateFormat df = DateFormat.getDateInstance(DateFormat.SHORT, Locale.getDefault());
         return df.format(mDate);
-    }
-
-    @Exclude
-    public Bitmap getPhoto() {
-        System.out.println("Feedback Image: " + mPhoto);
-        return mPhoto;
-    }
-
-    @Exclude
-    public void setPhoto(Bitmap photo) {
-        System.out.println("new Photo " + photo);
-        this.mPhoto = photo;
-        this.mHasPhoto = this.mPhoto != null;
     }
 
     /**
@@ -254,6 +264,7 @@ public class Feedback extends BaseObservable implements Serializable {
                 ", mProfile='" + profile + '\'' +
                 ", mRating=" + mRating +
                 ", mHasPhoto=" + mHasPhoto +
+//                ", mImage=" + image +
                 ", owner=" + owner +
                 '}';
     }

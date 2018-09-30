@@ -27,6 +27,7 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 
 import com.firebase.geofire.GeoLocation;
 import com.firebase.geofire.GeoQuery;
@@ -94,7 +95,8 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
     private Animator animator;
     private ImageView feedbackPhoto;
     private ImageView expandedPhoto;
-    private ValueEventListener dialogListenter;
+    private ValueEventListener dialogListener;
+    private ProgressBar loadImg;
 
     public MapFragment() {
         // Required empty public constructor
@@ -167,6 +169,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
         mMapView.getMapAsync(this);
 
         // init feedback dialog
+        loadImg = view.findViewById(R.id.load_img);
         expander = view.findViewById(R.id.dialog_feedback);
         expandedPhoto = view.findViewById(R.id.expanded_image);
         ImageButton feedbackEdit = view.findViewById(R.id.edit_feedback);
@@ -408,7 +411,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
     // ================================================================= //
 
     private void initFeedbackDialogListener() {
-        dialogListenter = new ValueEventListener() {
+        dialogListener = new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 boolean change = (feedback == null || !feedback.getId().equals(Objects.requireNonNull(dataSnapshot.getValue(Feedback.class)).getId()));
@@ -417,6 +420,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
 
                 if (feedback.isHasPhoto()) {
                     // show indicator
+                    loadImg.setVisibility(View.VISIBLE);
 
                     // get image file
                     String imageFileName = feedback.getId();
@@ -425,7 +429,10 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
 
                     // load image
                     LoadImageTask loadImageTask = new LoadImageTask(feedback);
-                    loadImageTask.setOnBitmapCreatedListener(img -> setFeedbackPhoto(img));
+                    loadImageTask.setOnBitmapCreatedListener(img -> {
+                        setFeedbackPhoto(img);
+                        loadImg.setVisibility(View.INVISIBLE);
+                    });
                     loadImageTask.execute(image);
                 } else {
                     setFeedbackPhoto(null);
@@ -480,7 +487,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
             return false;
         }
 
-        FirebaseHelper.getFeedbackRef().child(id).addValueEventListener(dialogListenter);
+        FirebaseHelper.getFeedbackRef().child(id).addValueEventListener(dialogListener);
 
         return true;
     }
@@ -694,7 +701,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                     animator = null;
 
                     // remove listener for the feedback
-                    FirebaseHelper.getFeedbackRef().child(feedback.getId()).removeEventListener(dialogListenter);
+                    FirebaseHelper.getFeedbackRef().child(feedback.getId()).removeEventListener(dialogListener);
                     feedback = null;
                 }
 
@@ -704,7 +711,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                     animator = null;
 
                     // remove listener for the feedback
-                    FirebaseHelper.getFeedbackRef().child(feedback.getId()).removeEventListener(dialogListenter);
+                    FirebaseHelper.getFeedbackRef().child(feedback.getId()).removeEventListener(dialogListener);
                     feedback = null;
                 }
             });

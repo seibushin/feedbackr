@@ -29,6 +29,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.Switch;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -73,6 +74,8 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
     private ImageView feedback_photo;
     private ImageView expanded_image;
     private Animator animator;
+
+    private ProgressBar loadImg;
 
     /**
      * Creates the Activity
@@ -133,10 +136,13 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
             }
         });
 
+        loadImg = findViewById(R.id.load_img);
         expanded_image = findViewById(R.id.expanded_image);
         feedback_photo = findViewById(R.id.feedback_photo);
         if (feedback.isHasPhoto()) {
+            System.out.println("HAS PHOTO");
             // show indicator
+            loadImg.setVisibility(View.VISIBLE);
 
             // get image file
             String imageFileName = feedback.getId();
@@ -145,8 +151,14 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
 
             // load image
             LoadImageTask loadImageTask = new LoadImageTask(feedback);
-            loadImageTask.setOnBitmapCreatedListener(this::setFeedbackPhoto);
+            loadImageTask.setOnBitmapCreatedListener(bitmap -> {
+                setFeedbackPhoto(bitmap);
+                // hide load indicator
+                loadImg.setVisibility(View.INVISIBLE);
+            });
             loadImageTask.execute(image);
+        } else {
+            loadImg.setVisibility(View.INVISIBLE);
         }
     }
 
@@ -378,8 +390,8 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
                     File image = createImageFile();
                     if (image.delete()) {
                         FirebaseStorageHelper.deleteImage(getFeedback().getId());
-                        setFeedbackPhoto(null);
                     }
+                    setFeedbackPhoto(null);
 
                     // hide expander and show thumbnail
                     findViewById(R.id.expander).setVisibility(View.INVISIBLE);
@@ -409,7 +421,6 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
         }
 
         //todo picture will also be saved in the gallery -> 2 times
-        // todo: remove Image -> close App -> feedback will not save noPhoto = false -> open App -> show Feedback -> return/save/back -> original unchanged image will be saved
     }
 
     private File createImageFile() {

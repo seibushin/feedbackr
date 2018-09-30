@@ -22,7 +22,7 @@ import de.hhu.cs.feedbackr.model.Profile;
 public class FirebaseHelper {
     private static final FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
 
-    // Static block so set persistence mode to true
+    // Static block to set persistence mode to true
     static {
         mDatabase.setPersistenceEnabled(true);
     }
