@@ -72,7 +72,7 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
                 Feedback feedback = dataSnapshot.getValue(Feedback.class);
 
                 if (feedback != null) {
-                    // update Feedback
+                    // update feedback
                     mFeedback.updateItemAt(mFeedback.indexOf(data.get(feedback.getId())), feedback);
                     data.put(feedback.getId(), feedback);
                 }
@@ -80,7 +80,7 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
 
             @Override
             public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
-                //Delete the Feedback from the List
+                // delete the feedback from the list
                 String key = dataSnapshot.getKey();
                 if (data.containsKey(key)) {
                     mFeedback.remove(data.remove(key));

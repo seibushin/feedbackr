@@ -32,13 +32,12 @@ public class Feedback extends BaseObservable implements Serializable {
     private boolean mPublish;
     private String mDetails;
     private float mRating;
-    private boolean mHasPhoto;
     private String owner;
     private Profile profile;
-    // todo add image as String
-//    private String image;
-
-    transient private Bitmap mPhoto;
+    private String image;
+    private String oldImage;
+    private Bitmap mPhoto;
+    private boolean newImage;
 
     /**
      * Empty Constructor for Firebase
@@ -59,6 +58,7 @@ public class Feedback extends BaseObservable implements Serializable {
         mCity = city;
         mPositive = positive;
         mDetails = "";
+        image = "";
         mPublish = true;
         mCategory = CategoryConverter.getDefault(positive);
         mId = id;
@@ -176,34 +176,46 @@ public class Feedback extends BaseObservable implements Serializable {
         this.mRating = rating;
     }
 
-    public boolean isHasPhoto() {
-        return mHasPhoto;
+    @Exclude
+    public boolean isNewImage() {
+        return newImage;
     }
 
-    @SuppressWarnings("unused")
-    public void setHasPhoto(boolean mHasPhoto) {
-        this.mHasPhoto = mHasPhoto;
+    @Exclude
+    public void setNewImage(boolean newImage) {
+        this.newImage = newImage;
     }
 
-//    public String getImage() {
-//        return image;
-//    }
-//
-//    public void setImage(String image) {
-//        this.image = image;
-//    }
+    public boolean hasImage() {
+        return image != null && !image.equals("");
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
+    }
+
+    @Exclude
+    public void setOldImage(String oldImage) {
+        this.oldImage = oldImage;
+    }
+
+    @Exclude
+    public String getOldImage() {
+        return this.oldImage;
+    }
 
     @Exclude
     public Bitmap getPhoto() {
-        System.out.println("Feedback Image: " + mPhoto);
         return mPhoto;
     }
 
     @Exclude
     public void setPhoto(Bitmap photo) {
-        System.out.println("new Photo " + photo);
         this.mPhoto = photo;
-        this.mHasPhoto = this.mPhoto != null;
     }
 
     public String getOwner() {
@@ -263,8 +275,7 @@ public class Feedback extends BaseObservable implements Serializable {
                 ", mId='" + mId + '\'' +
                 ", mProfile='" + profile + '\'' +
                 ", mRating=" + mRating +
-                ", mHasPhoto=" + mHasPhoto +
-//                ", mImage=" + image +
+                ", mImage=" + image +
                 ", owner=" + owner +
                 '}';
     }

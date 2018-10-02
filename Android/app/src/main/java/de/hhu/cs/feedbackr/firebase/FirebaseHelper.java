@@ -1,5 +1,6 @@
 package de.hhu.cs.feedbackr.firebase;
 
+import android.content.Context;
 import android.util.Log;
 
 import com.crashlytics.android.Crashlytics;
@@ -17,6 +18,7 @@ import de.hhu.cs.feedbackr.model.Profile;
 
 /**
  * Created by antonborries on 21/09/16.
+ *
  */
 
 public class FirebaseHelper {
@@ -39,14 +41,13 @@ public class FirebaseHelper {
      *
      * @param feedback Feedback to Save
      */
-    public static void saveFeedback(Feedback feedback) {
+    public static void saveFeedback(Feedback feedback, Context context) {
         Executors.newSingleThreadExecutor().execute(() -> {
-            System.out.println("SAVE FEEDBACK");
-            System.out.println(feedback);
+            Log.d(FirebaseHelper.class.getName(), "Save Feedback: " + feedback);
 
             FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
             if (user == null) {
-                Log.i("NO CURRENT USER TAG", "User is null");
+                Log.e(FirebaseHelper.class.getName(), "User is null");
                 Crashlytics.log("User is null");
                 return;
             }
@@ -62,25 +63,24 @@ public class FirebaseHelper {
 
             geoFire.setLocation(feedback.getId(), new GeoLocation(feedback.getLatitude(), feedback.getLongitude()), (key, error) -> {
                 if (error != null) {
+                    Log.e(FirebaseHelper.class.getName(), "There was an error saving the location to GeoFire: " + error.getMessage());
                     Crashlytics.logException(new Throwable("There was an error saving the location to GeoFire: " + error));
                 }
             });
 
             // upload image
-            FirebaseStorageHelper.uploadImage(feedback);
+            FirebaseStorageHelper.uploadImage(feedback, context);
         });
     }
 
     /**
-     *
      * @param profile the users profile
      */
     public static void saveProfile(Profile profile) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         if (user != null) {
-            System.out.println("SAVE PROFILE for " + user.getUid());
-            System.out.println(profile);
+            Log.d(FirebaseHelper.class.getName(), "Save profile for " + user.getUid() + ": " + profile);
 
             mUsersRef.child(user.getUid()).setValue(profile);
         }
@@ -94,7 +94,7 @@ public class FirebaseHelper {
     public static void deleteFeedback(Feedback feedback) {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
-            Log.i("NO CURRENT USER TAG", "User is null");
+            Log.e(FirebaseHelper.class.getName(), "User is null");
             return;
         }
 
@@ -103,11 +103,12 @@ public class FirebaseHelper {
         // remove geofire
         GeoFire geoFire = new GeoFire(mGeofireRef);
         // this is a fix due to removeLocation(key) not working as intended
-        geoFire.removeLocation(feedback.getId(), (p1, p2) -> {});
+        geoFire.removeLocation(feedback.getId(), (p1, p2) -> {
+        });
 
         // delete image
-        if (feedback.isHasPhoto()) {
-            FirebaseStorageHelper.deleteImage(feedback.getId());
+        if (feedback.hasImage()) {
+            FirebaseStorageHelper.deleteImage(feedback.getImage());
         }
     }
 
@@ -131,7 +132,7 @@ public class FirebaseHelper {
     public static DatabaseReference getUserRef() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
-            Log.i("NO CURRENT USER TAG", "User is null");
+            Log.e(FirebaseHelper.class.getName(), "User is null");
             return null;
         }
         return mUsersRef.child(user.getUid());

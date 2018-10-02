@@ -139,13 +139,13 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
         loadImg = findViewById(R.id.load_img);
         expanded_image = findViewById(R.id.expanded_image);
         feedback_photo = findViewById(R.id.feedback_photo);
-        if (feedback.isHasPhoto()) {
+        if (feedback.hasImage()) {
             System.out.println("HAS PHOTO");
             // show indicator
             loadImg.setVisibility(View.VISIBLE);
 
             // get image file
-            String imageFileName = feedback.getId();
+            String imageFileName = feedback.getImage();
             File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
             File image = new File(storageDir, imageFileName + ".jpg");
 
@@ -370,7 +370,7 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
      * @param view unused
      */
     public void showImage(View view) {
-        if (getFeedback().isHasPhoto()) {
+        if (getFeedback().hasImage()) {
             zoomImageFromThumb((ImageView) view);
         } else {
             takePicture(null);
@@ -387,10 +387,12 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
                 .setTitle(R.string.remove_image)
                 .setPositiveButton(R.string.remove_image_pos, (dialog, which) -> {
                     // if the call is unsuccessful the image will remain in the database
-                    File image = createImageFile();
+                    File image = getImageFile();
                     if (image.delete()) {
-                        FirebaseStorageHelper.deleteImage(getFeedback().getId());
+                        FirebaseStorageHelper.deleteImage(getFeedback().getImage());
                     }
+                    feedback.setImage("");
+                    feedback.setNewImage(false);
                     setFeedbackPhoto(null);
 
                     // hide expander and show thumbnail
@@ -420,40 +422,51 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
             }
         }
 
-        //todo picture will also be saved in the gallery -> 2 times
+        // note: picture will also be saved in the gallery
+        // this seems to be dependant on the camera app being used, so there is no general fix afaik
     }
 
-    private File createImageFile() {
-        String imageFileName = getFeedback().getId();
+    private File getImageFile() {
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-
-        File image = new File(storageDir, imageFileName + ".jpg");
-
+        File image = new File(storageDir, feedback.getImage() + ".jpg");
         // Save a file: path for use with ACTION_VIEW intents
         mCurrentPhotoPath = image.getAbsolutePath();
 
         return image;
     }
 
+    private File createImageFile() {
+        feedback.setOldImage(feedback.getImage());
+        feedback.setImage(feedback.getId() + "_" + System.currentTimeMillis());
+
+        return getImageFile();
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == RESULT_OK) {
-            System.out.println("PICTURE RESULT ");
+        if (requestCode == REQUEST_TAKE_PHOTO) {
+            if (resultCode == RESULT_OK) {
+                System.out.println("PICTURE RESULT ");
 
-            BitmapFactory.Options opt = new BitmapFactory.Options();
-            opt.inSampleSize = 4;
-            System.out.println(mCurrentPhotoPath);
+                BitmapFactory.Options opt = new BitmapFactory.Options();
+                opt.inSampleSize = 4;
+                System.out.println(mCurrentPhotoPath);
 
-            Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, opt);
+                Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, opt);
 
-            // save file to local storage
-            try (FileOutputStream fos = new FileOutputStream(createImageFile())) {
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-            } catch (Exception e) {
-                e.printStackTrace();
+                // save file to local storage
+                try (FileOutputStream fos = new FileOutputStream(getImageFile())) {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                feedback.setNewImage(true);
+                setFeedbackPhoto(bitmap);
+            } else {
+                feedback.setImage(feedback.getOldImage());
+                feedback.setOldImage("");
             }
-
-            setFeedbackPhoto(bitmap);
         }
     }
 
@@ -532,9 +545,7 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
         // save change on back
         Feedback feedback = getFeedback();
 
-        // todo dont save image again
-        // todo new image flag
-        FirebaseHelper.saveFeedback(feedback);
+        FirebaseHelper.saveFeedback(feedback, this);
 
         super.onBackPressed();
     }

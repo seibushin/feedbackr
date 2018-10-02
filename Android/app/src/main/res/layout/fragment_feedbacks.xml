@@ -47,6 +47,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
+            android:scrollbarAlwaysDrawHorizontalTrack="false"
             android:text="@string/no_feedback_found"
             android:textAllCaps="false"
             android:textColor="@color/colorPrimary"

@@ -11,9 +11,6 @@
     <uses-feature
         android:name="android.hardware.camera"
         android:required="false" />
-    <uses-feature
-        android:glEsVersion="0x00020000"
-        android:required="true" />
 
     <application
         android:allowBackup="true"
@@ -31,19 +28,20 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="de.hhu.cs.feedbackr.view.activity.FeedbackEditActivity"
+        <activity
+            android:name="de.hhu.cs.feedbackr.view.activity.FeedbackEditActivity"
             android:label="@string/title_activity_main"
-            android:parentActivityName=".view.activity.MainActivity"/>
+            android:parentActivityName=".view.activity.MainActivity" />
 
         <activity
             android:name="de.hhu.cs.feedbackr.view.activity.ProfileActivity"
             android:label="@string/menu_profile"
-            android:parentActivityName=".view.activity.MainActivity"></activity>
+            android:parentActivityName=".view.activity.MainActivity" />
 
         <activity
             android:name="de.hhu.cs.feedbackr.view.activity.AboutActivity"
             android:label="@string/menu_about"
-            android:parentActivityName=".view.activity.MainActivity"></activity>
+            android:parentActivityName=".view.activity.MainActivity" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -56,7 +54,7 @@
             android:grantUriPermissions="true">
             <meta-data
                 android:name="android.support.FILE_PROVIDER_PATHS"
-                android:resource="@xml/file_paths"></meta-data>
+                android:resource="@xml/file_paths" />
         </provider>
 
     </application>

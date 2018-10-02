@@ -42,8 +42,6 @@ public class AboutActivity extends AppCompatActivity {
 
     /**
      * Show the about dialog
-     *
-     * @param view unused
      */
     public void showLicense(View view) {
         // get the webView and load the about info

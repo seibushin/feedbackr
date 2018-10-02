@@ -152,7 +152,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
             Feedback feedback = new Feedback(currentLocation, mCurrentCity, kind, feedbackId);
 
             // Saves it in Firebase
-            FirebaseHelper.saveFeedback(feedback);
+            FirebaseHelper.saveFeedback(feedback, this);
 
             // Show Success Toast
             createToast(String.format(getString(R.string.feedback_send),

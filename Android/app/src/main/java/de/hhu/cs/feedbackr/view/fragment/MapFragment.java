@@ -275,32 +275,66 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                 // check if we found a new key
                 if (!checkLocationKey(key)) {
                     // get the actual feedback for the key
-                    FirebaseHelper.getFeedbackRef().child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                    FirebaseHelper.getFeedbackRef().child(key).addValueEventListener(new ValueEventListener() {
                         @Override
                         public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                             Feedback f = dataSnapshot.getValue(Feedback.class);
 
                             if (f != null) {
-                                Marker marker = createMarker(f);
-                                if (marker != null) {
-                                    if (f.getOwner().equals(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())) {
-                                        // private
-                                        if (f.isPositive()) {
-                                            marker.setVisible(showPrivate && showPositive);
-                                            privatePosMarker.put(f.getId(), marker);
-                                        } else {
-                                            marker.setVisible(showPrivate && showNegative);
-                                            privateNegMarker.put(f.getId(), marker);
+                                // change of existing feedback
+                                // update icon
+                                if (privateNegMarker.containsKey(f.getId())) {
+                                    Bitmap bmp = Helper.getBitmapFromVectorDrawable(CategoryConverter.tagToDrawable(f.getCategory()), f.isPositive(), getContext());
+                                    privateNegMarker.get(f.getId()).setIcon(BitmapDescriptorFactory.fromBitmap(bmp));
+                                    if (f.isPositive()) {
+                                        // move marker to pos hashmap
+                                        privatePosMarker.put(f.getId(), privateNegMarker.remove(f.getId()));
+                                    }
+                                } else if (privatePosMarker.containsKey(f.getId())) {
+                                    Bitmap bmp = Helper.getBitmapFromVectorDrawable(CategoryConverter.tagToDrawable(f.getCategory()), f.isPositive(), getContext());
+                                    privatePosMarker.get(f.getId()).setIcon(BitmapDescriptorFactory.fromBitmap(bmp));
+                                    if (!f.isPositive()) {
+                                        // move marker
+                                        privateNegMarker.put(f.getId(), privatePosMarker.remove(f.getId()));
+                                    }
+                                } else if (publicPosMarker.containsKey(f.getId())) {
+                                    Bitmap bmp = Helper.getBitmapFromVectorDrawable(CategoryConverter.tagToDrawable(f.getCategory()), f.isPositive(), getContext());
+                                    publicPosMarker.get(f.getId()).setIcon(BitmapDescriptorFactory.fromBitmap(bmp));
+                                    if (!f.isPositive()) {
+                                        // move marker
+                                        publicNegMarker.put(f.getId(), publicPosMarker.remove(f.getId()));
+                                    }
+                                } else if (publicNegMarker.containsKey(f.getId())) {
+                                    Bitmap bmp = Helper.getBitmapFromVectorDrawable(CategoryConverter.tagToDrawable(f.getCategory()), f.isPositive(), getContext());
+                                    publicNegMarker.get(f.getId()).setIcon(BitmapDescriptorFactory.fromBitmap(bmp));
+                                    if (f.isPositive()) {
+                                        // move marker
+                                        publicPosMarker.put(f.getId(), publicNegMarker.remove(f.getId()));
+                                    }
+                                } else {
+                                    // new feedback
+                                    Marker marker = createMarker(f);
+                                    if (marker != null) {
+                                        if (f.getOwner().equals(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())) {
+                                            // private
+                                            if (f.isPositive()) {
+                                                marker.setVisible(showPrivate && showPositive);
+                                                privatePosMarker.put(f.getId(), marker);
+                                            } else {
+                                                marker.setVisible(showPrivate && showNegative);
+                                                privateNegMarker.put(f.getId(), marker);
+                                            }
+                                        } else if (f.isPublished()) {
+                                            // public
+                                            if (f.isPositive()) {
+                                                marker.setVisible(showPublic && showPositive);
+                                                publicPosMarker.put(f.getId(), marker);
+                                            } else {
+                                                marker.setVisible(showPublic && showNegative);
+                                                publicNegMarker.put(f.getId(), marker);
+                                            }
                                         }
-                                    } else if (f.isPublished()) {
-                                        // public
-                                        if (f.isPositive()) {
-                                            marker.setVisible(showPublic && showPositive);
-                                            publicPosMarker.put(f.getId(), marker);
-                                        } else {
-                                            marker.setVisible(showPublic && showNegative);
-                                            publicNegMarker.put(f.getId(), marker);
-                                        }
+
                                     }
                                 }
                             }
@@ -418,12 +452,13 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                 feedback = dataSnapshot.getValue(Feedback.class);
                 binding.setFeedback(feedback);
 
-                if (feedback.isHasPhoto()) {
+                System.out.println("hasImage:" + feedback.hasImage() + " " + feedback.getImage());
+                if (feedback.hasImage()) {
                     // show indicator
                     loadImg.setVisibility(View.VISIBLE);
 
                     // get image file
-                    String imageFileName = feedback.getId();
+                    String imageFileName = feedback.getImage();
                     File storageDir = Objects.requireNonNull(getActivity()).getExternalFilesDir(Environment.DIRECTORY_PICTURES);
                     File image = new File(storageDir, imageFileName + ".jpg");
 
@@ -435,6 +470,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                     });
                     loadImageTask.execute(image);
                 } else {
+                    loadImg.setVisibility(View.INVISIBLE);
                     setFeedbackPhoto(null);
                 }
 
@@ -445,7 +481,6 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                     expander.findViewById(R.id.edit_feedback).setVisibility(View.GONE);
                 }
                 // zoom the dialog if new feedback
-                System.out.println(change + " " + animator);
                 if (change) {
                     zoomView(expander);
                 } else {

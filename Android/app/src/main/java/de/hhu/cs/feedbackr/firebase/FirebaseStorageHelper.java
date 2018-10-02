@@ -1,6 +1,9 @@
 package de.hhu.cs.feedbackr.firebase;
 
+import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.Environment;
+import android.util.Log;
 
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageException;
@@ -8,6 +11,7 @@ import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 
 import de.hhu.cs.feedbackr.model.Feedback;
 
@@ -23,47 +27,60 @@ public class FirebaseStorageHelper {
      *
      * @param feedback the feedback
      */
-    public static void uploadImage(Feedback feedback) {
-        if (feedback.getPhoto() != null) {
-            System.out.println("Upload Image");
-            System.out.println(feedback);
+    public static void uploadImage(Feedback feedback, Context context) {
+        if (feedback.isNewImage() && feedback.getPhoto() != null) {
+            Log.d(FirebaseStorageHelper.class.getName(), "Upload image");
 
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
             feedback.getPhoto().compress(Bitmap.CompressFormat.JPEG, 100, byteArrayOutputStream);
             byte[] data = byteArrayOutputStream.toByteArray();
 
-            StorageReference image = feedbackRef.child(feedback.getId() + ".jpg");
+            StorageReference image = feedbackRef.child(feedback.getImage() + ".jpg");
 
             UploadTask uploadTask = image.putBytes(data);
             uploadTask.addOnFailureListener(exception -> {
                 // Handle unsuccessful uploads
-                System.out.println("unsuccessful upload");
+                Log.d(FirebaseStorageHelper.class.getName(), "Unsuccessful upload");
             }).addOnSuccessListener(taskSnapshot -> {
                 // Upload was successful
-                System.out.println("successful upload");
+                Log.d(FirebaseStorageHelper.class.getName(),"Successful upload");
             });
         }
+
+        if (feedback.getOldImage() != null && !feedback.getOldImage().equals("")) {
+            // if the call is unsuccessful the image will remain in the database
+            File storageDir = context.getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+            File image = new File(storageDir, feedback.getOldImage() + ".jpg");
+            if (image.delete()) {
+                deleteImage(feedback.getOldImage());
+
+                feedback.setOldImage("");
+            }
+        }
+
+        // reset newImage flag
+        feedback.setNewImage(false);
     }
 
     /**
      * Delete the image for the given Feedback Id
      *
-     * @param feedbackId the feedbacks id
+     * @param feedbackImage the feedbacks id
      */
-    public static void deleteImage(String feedbackId) {
+    public static void deleteImage(String feedbackImage) {
         // Create a storage reference from our app
-        StorageReference image = feedbackRef.child(feedbackId + ".jpg");
+        StorageReference image = feedbackRef.child(feedbackImage + ".jpg");
 
         // Delete the file
         image.delete().addOnSuccessListener(aVoid -> {
             // File deleted successfully
-            System.out.println("deleltion successful");
+            Log.d(FirebaseStorageHelper.class.getName(),"Image deletion successful");
         }).addOnFailureListener(exception -> {
             int errorCode = ((StorageException) exception).getErrorCode();
             if (errorCode == StorageException.ERROR_OBJECT_NOT_FOUND) {
-                System.out.println("deletion unsuccessful - object not found");
+                Log.d(FirebaseStorageHelper.class.getName(), "Image deletion unsuccessful - object not found");
             } else {
-                System.out.println("deletion unsuccessful");
+                Log.d(FirebaseStorageHelper.class.getName(),"Image deletion unsuccessful");
             }
         });
     }
