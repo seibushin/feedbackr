@@ -1,16 +1,10 @@
 package de.hhu.cs.feedbackr.view.fragment;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.location.Location;
 import android.os.Bundle;
 import android.os.Environment;
@@ -24,7 +18,6 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -52,23 +45,24 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
+import de.hhu.cs.feedbackr.Helper;
+import de.hhu.cs.feedbackr.LoadImageTask;
 import de.hhu.cs.feedbackr.R;
+import de.hhu.cs.feedbackr.Zoom;
 import de.hhu.cs.feedbackr.databinding.FragmentMapBinding;
 import de.hhu.cs.feedbackr.firebase.FirebaseHelper;
 import de.hhu.cs.feedbackr.model.CategoryConverter;
 import de.hhu.cs.feedbackr.model.Feedback;
-import de.hhu.cs.feedbackr.Helper;
-import de.hhu.cs.feedbackr.LoadImageTask;
 import de.hhu.cs.feedbackr.view.activity.MainActivity;
 
 /**
  * A Fragment to Display A Map in the MainActivity
  */
 public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener, OnMapReadyCallback {
-    private static final String PERSONAL_PREFERENCE_KEY = "personal_marker";
+    private static final String PRIVATE_PREFERENCE_KEY = "private_marker";
     private static final String PUBLIC_PREFERENCE_KEY = "public_marker";
     private static final String POSITIVE_PREFERENCE_KEY = "positive_marker";
-    private static final String NEGATIVE_PREFERENCE_KEY = "positive_marker";
+    private static final String NEGATIVE_PREFERENCE_KEY = "negative_marker";
     private static final double MAX_CIRCLE_RADIUS = 3000;
 
     // filter
@@ -89,12 +83,13 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
     private GeoQuery query;
 
     // feedback dialog
+    private Zoom zoom;
+    private View expandContainer;
+    private View expander;
     private FragmentMapBinding binding;
     private Feedback feedback;
-    private View expander;
-    private Animator animator;
     private ImageView feedbackPhoto;
-    private ImageView expandedPhoto;
+    private ImageView expandedImage;
     private ValueEventListener dialogListener;
     private ProgressBar loadImg;
 
@@ -112,6 +107,13 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
         publicPosMarker = new HashMap<>();
         publicNegMarker = new HashMap<>();
 
+        // create a zoom object to expand the dialog and imageView
+        zoom = new Zoom();
+        zoom.setAnimationEndListener(() -> {
+            FirebaseHelper.getFeedbackRef().child(feedback.getId()).removeEventListener(dialogListener);
+            feedback = null;
+        });
+
         getPreferences();
 
         initFeedbackDialogListener();
@@ -122,7 +124,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
      */
     private void getPreferences() {
         SharedPreferences sharedPref = Objects.requireNonNull(getActivity()).getPreferences(Context.MODE_PRIVATE);
-        showPrivate = sharedPref.getBoolean(PERSONAL_PREFERENCE_KEY, true);
+        showPrivate = sharedPref.getBoolean(PRIVATE_PREFERENCE_KEY, true);
         showPublic = sharedPref.getBoolean(PUBLIC_PREFERENCE_KEY, true);
         showPositive = sharedPref.getBoolean(POSITIVE_PREFERENCE_KEY, true);
         showNegative = sharedPref.getBoolean(NEGATIVE_PREFERENCE_KEY, true);
@@ -170,12 +172,13 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
 
         // init feedback dialog
         loadImg = view.findViewById(R.id.load_img);
-        expander = view.findViewById(R.id.dialog_feedback);
-        expandedPhoto = view.findViewById(R.id.expanded_image);
+        expander = view.findViewById(R.id.expander);
+        expandedImage = view.findViewById(R.id.expanded_image);
+        expandContainer = view.findViewById(R.id.expand_container);
         ImageButton feedbackEdit = view.findViewById(R.id.edit_feedback);
         feedbackEdit.setOnClickListener(e -> ((MainActivity) Objects.requireNonNull(getActivity())).switchToFeedbackDetail(feedback));
         feedbackPhoto = view.findViewById(R.id.feedback_photo);
-        feedbackPhoto.setOnClickListener(e -> zoomImageFromThumb(feedbackPhoto, expandedPhoto));
+        feedbackPhoto.setOnClickListener(e -> zoom.zoomImageFromThumb(feedbackPhoto, expandedImage, expandContainer));
 
         return view;
     }
@@ -285,7 +288,8 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                                 // update icon
                                 if (privateNegMarker.containsKey(f.getId())) {
                                     Bitmap bmp = Helper.getBitmapFromVectorDrawable(CategoryConverter.tagToDrawable(f.getCategory()), f.isPositive(), getContext());
-                                    privateNegMarker.get(f.getId()).setIcon(BitmapDescriptorFactory.fromBitmap(bmp));
+                                    Marker marker = privateNegMarker.get(f.getId());
+                                    marker.setIcon(BitmapDescriptorFactory.fromBitmap(bmp));
                                     if (f.isPositive()) {
                                         // move marker to pos hashmap
                                         privatePosMarker.put(f.getId(), privateNegMarker.remove(f.getId()));
@@ -444,6 +448,12 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
     // ================================================================= //
     // ================================================================= //
 
+    /**
+     * Create the feedbackDialogListener, this listener will be attached to a feedback.
+     * We need to keep the reference to remove the listener as soon as the dialog is dismissed.
+     * Otherwise we want the dialog to update on changes made in the edit view of the feedback
+     * This keeps the dialog in syn with the corresponding data
+     */
     private void initFeedbackDialogListener() {
         dialogListener = new ValueEventListener() {
             @Override
@@ -452,7 +462,6 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                 feedback = dataSnapshot.getValue(Feedback.class);
                 binding.setFeedback(feedback);
 
-                System.out.println("hasImage:" + feedback.hasImage() + " " + feedback.getImage());
                 if (feedback.hasImage()) {
                     // show indicator
                     loadImg.setVisibility(View.VISIBLE);
@@ -482,7 +491,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
                 }
                 // zoom the dialog if new feedback
                 if (change) {
-                    zoomView(expander);
+                    zoom.zoomView(expander, expandContainer);
                 } else {
                     // update icon
                     Bitmap bmp = Helper.getBitmapFromVectorDrawable(CategoryConverter.tagToDrawable(feedback.getCategory()), feedback.isPositive(), getContext());
@@ -527,232 +536,14 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
         return true;
     }
 
+    /**
+     * Update the feedback image
+     *
+     * @param image bitmap of the image
+     */
     private void setFeedbackPhoto(Bitmap image) {
         feedbackPhoto.setImageBitmap(image);
-        expandedPhoto.setImageBitmap(image);
-    }
-
-    /**
-     * https://developer.android.com/training/animation/zoom
-     *
-     * @param thumbView the image thumbnail
-     * @param expander  the wrapper in which the thumbnail should be expanded
-     */
-    private void zoomImageFromThumb(final ImageView thumbView, View expander) {
-        // If there's an animation in progress, cancel it
-        // immediately and proceed with this one.
-        if (animator != null) {
-            animator.cancel();
-        }
-
-        // Calculate the starting and ending bounds for the zoomed-in image.
-        // This step involves lots of math. Yay, math.
-        final Rect startBounds = new Rect();
-        final Rect finalBounds = new Rect();
-        final Point globalOffset = new Point();
-
-        // The start bounds are the global visible rectangle of the thumbnail,
-        // and the final bounds are the global visible rectangle of the container
-        // view. Also set the container view's offset as the origin for the
-        // bounds, since that's the origin for the positioning animation
-        // properties (X, Y).
-        thumbView.getGlobalVisibleRect(startBounds);
-        Objects.requireNonNull(getView()).findViewById(R.id.expand_container).getGlobalVisibleRect(finalBounds, globalOffset);
-        startBounds.offset(-globalOffset.x, -globalOffset.y);
-        finalBounds.offset(-globalOffset.x, -globalOffset.y);
-
-        // Adjust the start bounds to be the same aspect ratio as the final
-        // bounds using the "center crop" technique. This prevents undesirable
-        // stretching during the animation. Also calculate the start scaling
-        // factor (the end scaling factor is always 1.0).
-        float startScale;
-        if ((float) finalBounds.width() / finalBounds.height() > (float) startBounds.width() / startBounds.height()) {
-            // Extend start bounds horizontally
-            startScale = (float) startBounds.height() / finalBounds.height();
-            float startWidth = startScale * finalBounds.width();
-            float deltaWidth = (startWidth - startBounds.width()) / 2;
-            startBounds.left -= deltaWidth;
-            startBounds.right += deltaWidth;
-        } else {
-            // Extend start bounds vertically
-            startScale = (float) startBounds.width() / finalBounds.width();
-            float startHeight = startScale * finalBounds.height();
-            float deltaHeight = (startHeight - startBounds.height()) / 2;
-            startBounds.top -= deltaHeight;
-            startBounds.bottom += deltaHeight;
-        }
-
-        // Hide the thumbnail and show the zoomed-in view. When the animation
-        // begins, it will position the zoomed-in view in the place of the
-        // thumbnail.
-        thumbView.setAlpha(0f);
-        expander.setVisibility(View.VISIBLE);
-
-        // Set the pivot point for SCALE_X and SCALE_Y transformations
-        // to the top-left corner of the zoomed-in view (the default
-        // is the center of the view).
-        expander.setPivotX(1f);
-        expander.setPivotY(0f);
-
-        // Construct and run the parallel animation of the four translation and
-        // scale properties (X, Y, SCALE_X, and SCALE_Y).
-        AnimatorSet set = new AnimatorSet();
-        set
-                .play(ObjectAnimator.ofFloat(expander, View.X, startBounds.left, finalBounds.left))
-                .with(ObjectAnimator.ofFloat(expander, View.Y, startBounds.top, finalBounds.top))
-                .with(ObjectAnimator.ofFloat(expander, View.SCALE_X, startScale, 1f))
-                .with(ObjectAnimator.ofFloat(expander, View.SCALE_Y, startScale, 1f));
-        set.setDuration(500);
-        set.setInterpolator(new DecelerateInterpolator());
-        set.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                animator = null;
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                animator = null;
-            }
-        });
-        animator = set;
-        set.start();
-
-        // Upon clicking the zoomed-in image, it should zoom back down
-        // to the original bounds and show the thumbnail instead of
-        // the expanded image.
-        final float startScaleFinal = startScale;
-        expander.setOnClickListener(view -> {
-            if (animator != null) {
-                animator.cancel();
-            }
-
-            // Animate the four positioning/sizing properties in parallel,
-            // back to their original values.
-            AnimatorSet set1 = new AnimatorSet();
-            set1.play(ObjectAnimator
-                    .ofFloat(expander, View.X, startBounds.left))
-                    .with(ObjectAnimator.ofFloat(expander, View.Y, startBounds.top))
-                    .with(ObjectAnimator.ofFloat(expander, View.SCALE_X, startScaleFinal))
-                    .with(ObjectAnimator.ofFloat(expander, View.SCALE_Y, startScaleFinal));
-            set1.setDuration(500);
-            set1.setInterpolator(new DecelerateInterpolator());
-            set1.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    thumbView.setAlpha(1f);
-                    expander.setVisibility(View.GONE);
-                    animator = null;
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                    thumbView.setAlpha(1f);
-                    expander.setVisibility(View.GONE);
-                    animator = null;
-                }
-            });
-            animator = set1;
-            set1.start();
-        });
-    }
-
-    /**
-     * https://developer.android.com/training/animation/zoom
-     * <p>
-     * Edited by Sebastian Meyer
-     */
-    private void zoomView(View expander) {
-        // If there's an animation in progress, cancel it
-        // immediately and proceed with this one.
-        if (animator != null) {
-            animator.cancel();
-        }
-
-        // Calculate the starting and ending bounds for the zoomed-in image.
-        // This step involves lots of math. Yay, math.
-        final Rect startBounds = new Rect();
-        final Rect finalBounds = new Rect();
-        final Point globalOffset = new Point();
-
-        // we want the view to start from the center of the screen and end there as well
-        // The final bounds are the global visible rectangle of the container view
-        Objects.requireNonNull(getView()).findViewById(R.id.expand_container).getGlobalVisibleRect(finalBounds, globalOffset);
-        // set the offset for the final bounds
-        finalBounds.offset(-globalOffset.x, -globalOffset.y);
-
-        // Show the expander
-        expander.setVisibility(View.VISIBLE);
-
-        System.out.println(startBounds.left + " " + finalBounds.left);
-        System.out.println(startBounds.top + " " + finalBounds.top);
-
-        // Construct and run the parallel animation of the four translation and
-        // scale properties (X, Y, SCALE_X, and SCALE_Y).
-        AnimatorSet set = new AnimatorSet();
-        set
-                .play(ObjectAnimator.ofFloat(expander, View.X, startBounds.left, finalBounds.left))
-                .with(ObjectAnimator.ofFloat(expander, View.Y, startBounds.top, finalBounds.top))
-                // The StartScale is always 0 and the end scaling factor is always 1.0
-                .with(ObjectAnimator.ofFloat(expander, View.SCALE_X, 0f, 1f))
-                .with(ObjectAnimator.ofFloat(expander, View.SCALE_Y, 0f, 1f));
-        set.setDuration(200);
-        set.setInterpolator(new DecelerateInterpolator());
-        set.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                animator = null;
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                animator = null;
-            }
-        });
-        animator = set;
-        set.start();
-
-        // Upon clicking the zoomed-in expander, it should zoom back down
-        // to the original bounds and disappear
-        expander.setOnClickListener(view -> {
-            if (animator != null) {
-                animator.cancel();
-            }
-
-            // Animate the four positioning/sizing properties in parallel,
-            // back to their original values.
-            AnimatorSet set1 = new AnimatorSet();
-            set1.play(ObjectAnimator
-                    .ofFloat(expander, View.X, startBounds.left))
-                    .with(ObjectAnimator.ofFloat(expander, View.Y, startBounds.top))
-                    .with(ObjectAnimator.ofFloat(expander, View.SCALE_X, 0F))
-                    .with(ObjectAnimator.ofFloat(expander, View.SCALE_Y, 0F));
-            set1.setDuration(200);
-            set1.setInterpolator(new DecelerateInterpolator());
-            set1.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    expander.setVisibility(View.GONE);
-                    animator = null;
-
-                    // remove listener for the feedback
-                    FirebaseHelper.getFeedbackRef().child(feedback.getId()).removeEventListener(dialogListener);
-                    feedback = null;
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                    expander.setVisibility(View.GONE);
-                    animator = null;
-
-                    // remove listener for the feedback
-                    FirebaseHelper.getFeedbackRef().child(feedback.getId()).removeEventListener(dialogListener);
-                    feedback = null;
-                }
-            });
-            animator = set1;
-            set1.start();
-        });
+        expandedImage.setImageBitmap(image);
     }
 
 
@@ -810,7 +601,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
 
         // save floating action buttons state in preferences
         SharedPreferences sharedPref = Objects.requireNonNull(getActivity()).getPreferences(Context.MODE_PRIVATE);
-        sharedPref.edit().putBoolean(PERSONAL_PREFERENCE_KEY, showPrivate).apply();
+        sharedPref.edit().putBoolean(PRIVATE_PREFERENCE_KEY, showPrivate).apply();
         sharedPref.edit().putBoolean(PUBLIC_PREFERENCE_KEY, showPublic).apply();
         sharedPref.edit().putBoolean(POSITIVE_PREFERENCE_KEY, showPositive).apply();
         sharedPref.edit().putBoolean(NEGATIVE_PREFERENCE_KEY, showNegative).apply();

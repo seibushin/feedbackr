@@ -15,6 +15,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Toast;
@@ -128,7 +129,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
                 @Override
                 public void onCancelled(@NonNull DatabaseError databaseError) {
-                    System.out.println("The read failed: " + databaseError.getCode());
+                    Log.e(MainActivity.class.getName(), "The read failed: " + databaseError.getCode());
                 }
             });
         }
@@ -145,6 +146,7 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         //Creates the Feedback
         if (currentLocation == null) {
             createToast(getString(R.string.noLocation), Toast.LENGTH_LONG);
+            Log.d(MainActivity.class.getName(), "Try to sendFeedback but currentLocation is null");
             Crashlytics.logException(new Throwable("Try to sendFeedback but currentLocation is null"));
         } else if (!Profile.isAuth()) {
             createToast(getString(R.string.noAuth), Toast.LENGTH_SHORT);
@@ -497,9 +499,6 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        //Resets the Toolbar to Expanded
-        //((AppBarLayout) findViewById(R.id.main_appbar)).setExpanded(true);
-
         Intent intent = null;
 
         // Handle navigation view item clicks here.

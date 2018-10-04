@@ -128,7 +128,7 @@
         </android.support.constraint.ConstraintLayout>
 
         <android.support.constraint.ConstraintLayout
-            android:id="@+id/dialog_feedback"
+            android:id="@+id/expander"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:visibility="invisible">

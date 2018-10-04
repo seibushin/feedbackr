@@ -1,21 +1,14 @@
 package de.hhu.cs.feedbackr.view.activity;
 
-import android.animation.Animator;
-import android.animation.AnimatorListenerAdapter;
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Intent;
 import android.databinding.DataBindingUtil;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.graphics.Point;
-import android.graphics.Rect;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
-import android.support.constraint.ConstraintLayout;
 import android.support.v4.content.FileProvider;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -25,7 +18,6 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.DecelerateInterpolator;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
@@ -45,7 +37,10 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.util.Objects;
 
+import de.hhu.cs.feedbackr.Helper;
+import de.hhu.cs.feedbackr.LoadImageTask;
 import de.hhu.cs.feedbackr.R;
+import de.hhu.cs.feedbackr.Zoom;
 import de.hhu.cs.feedbackr.databinding.ActivityFeedbackEditBinding;
 import de.hhu.cs.feedbackr.databinding.DialogSwitchBinding;
 import de.hhu.cs.feedbackr.firebase.FirebaseHelper;
@@ -53,8 +48,6 @@ import de.hhu.cs.feedbackr.firebase.FirebaseStorageHelper;
 import de.hhu.cs.feedbackr.model.CategoryConverter;
 import de.hhu.cs.feedbackr.model.Feedback;
 import de.hhu.cs.feedbackr.model.Profile;
-import de.hhu.cs.feedbackr.Helper;
-import de.hhu.cs.feedbackr.LoadImageTask;
 
 /**
  * Activity for Displaying a Feedback and Editing it
@@ -71,10 +64,12 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
     private ArrayAdapter<CharSequence> mAdapter;
     private AppCompatSpinner mSpinner;
 
+    // image zoom / image dialog (remove/retake)
+    private View expander;
+    private View expandContainer;
     private ImageView feedback_photo;
     private ImageView expanded_image;
-    private Animator animator;
-
+    private Zoom zoom;
     private ProgressBar loadImg;
 
     /**
@@ -136,11 +131,16 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
             }
         });
 
+        // create a new zoom object and get the needed views
+        zoom = new Zoom();
+        expander = findViewById(R.id.expander);
+        expandContainer = findViewById(R.id.feedback_detail_frame);
         loadImg = findViewById(R.id.load_img);
         expanded_image = findViewById(R.id.expanded_image);
         feedback_photo = findViewById(R.id.feedback_photo);
+
+        // check if the feedback has an image
         if (feedback.hasImage()) {
-            System.out.println("HAS PHOTO");
             // show indicator
             loadImg.setVisibility(View.VISIBLE);
 
@@ -162,7 +162,13 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
         }
     }
 
-    public Feedback getFeedback() {
+    /**
+     * This method updates the feedback by attaching the profile or removing it. If this information
+     * is not needed one can simple use {@link #feedback}
+     *
+     * @return the updated feedback
+     */
+    private Feedback getFeedback() {
         boolean attach = ((Switch) findViewById(R.id.switchAttach)).isChecked();
         if (attach) {
             if (feedback.getProfile() == null) {
@@ -180,24 +186,11 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
     /**
      * Handles Switching the Kind of the Feedback
      */
-    public void switchKind() {
+    private void switchKind() {
         feedback.switchKind();
         mAdapter = ArrayAdapter.createFromResource(this, feedback.isPositive() ? R.array.positive_array : R.array.negative_array, android.R.layout.simple_spinner_item);
         mAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         mSpinner.setAdapter(mAdapter);
-    }
-
-    public void setFeedbackPhoto(Bitmap image) {
-        feedback.setPhoto(image);
-        feedback_photo.setImageBitmap(image);
-        expanded_image.setImageBitmap(image);
-    }
-
-    /**
-     * Update the Marker Icon
-     */
-    public void updateMarker() {
-        mMarker.setIcon(BitmapDescriptorFactory.fromBitmap(Helper.getBitmap(this, feedback.isPositive(), feedback.getCategory())));
     }
 
     /**
@@ -215,6 +208,25 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
                 })
                 .setNegativeButton(R.string.cancel, (dialogInterface, i) -> dialogInterface.cancel()).create();
         switchDialog.show();
+    }
+
+    /**
+     * Update the feedback image. We also set the bitmap to the feedback object. This is needed
+     * to be able to save the image to firebase storage
+     *
+     * @param image bitmap of the image
+     */
+    public void setFeedbackPhoto(Bitmap image) {
+        feedback.setPhoto(image);
+        feedback_photo.setImageBitmap(image);
+        expanded_image.setImageBitmap(image);
+    }
+
+    /**
+     * Update the Marker Icon
+     */
+    public void updateMarker() {
+        mMarker.setIcon(BitmapDescriptorFactory.fromBitmap(Helper.getBitmap(this, feedback.isPositive(), feedback.getCategory())));
     }
 
     /**
@@ -236,142 +248,13 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
     }
 
     /**
-     * https://developer.android.com/training/animation/zoom
-     *
-     * @param thumbView the image thumbnail
-     */
-    private void zoomImageFromThumb(final ImageView thumbView) {
-        // If there's an animation in progress, cancel it
-        // immediately and proceed with this one.
-        if (animator != null) {
-            animator.cancel();
-        }
-
-        // Load the high-resolution "zoomed-in" image.
-        final ConstraintLayout expander = findViewById(R.id.expander);
-        expanded_image = findViewById(R.id.expanded_image);
-        expanded_image.setImageDrawable(thumbView.getDrawable());
-
-        // Calculate the starting and ending bounds for the zoomed-in image.
-        // This step involves lots of math. Yay, math.
-        final Rect startBounds = new Rect();
-        final Rect finalBounds = new Rect();
-        final Point globalOffset = new Point();
-
-        // The start bounds are the global visible rectangle of the thumbnail,
-        // and the final bounds are the global visible rectangle of the container
-        // view. Also set the container view's offset as the origin for the
-        // bounds, since that's the origin for the positioning animation
-        // properties (X, Y).
-        thumbView.getGlobalVisibleRect(startBounds);
-        findViewById(R.id.feedback_detail_frame).getGlobalVisibleRect(finalBounds, globalOffset);
-        startBounds.offset(-globalOffset.x, -globalOffset.y);
-        finalBounds.offset(-globalOffset.x, -globalOffset.y);
-
-        // Adjust the start bounds to be the same aspect ratio as the final
-        // bounds using the "center crop" technique. This prevents undesirable
-        // stretching during the animation. Also calculate the start scaling
-        // factor (the end scaling factor is always 1.0).
-        float startScale;
-        if ((float) finalBounds.width() / finalBounds.height() > (float) startBounds.width() / startBounds.height()) {
-            // Extend start bounds horizontally
-            startScale = (float) startBounds.height() / finalBounds.height();
-            float startWidth = startScale * finalBounds.width();
-            float deltaWidth = (startWidth - startBounds.width()) / 2;
-            startBounds.left -= deltaWidth;
-            startBounds.right += deltaWidth;
-        } else {
-            // Extend start bounds vertically
-            startScale = (float) startBounds.width() / finalBounds.width();
-            float startHeight = startScale * finalBounds.height();
-            float deltaHeight = (startHeight - startBounds.height()) / 2;
-            startBounds.top -= deltaHeight;
-            startBounds.bottom += deltaHeight;
-        }
-
-        // Hide the thumbnail and show the zoomed-in view. When the animation
-        // begins, it will position the zoomed-in view in the place of the
-        // thumbnail.
-        thumbView.setAlpha(0f);
-        expander.setVisibility(View.VISIBLE);
-
-        // Set the pivot point for SCALE_X and SCALE_Y transformations
-        // to the top-left corner of the zoomed-in view (the default
-        // is the center of the view).
-        expander.setPivotX(1f);
-        expander.setPivotY(0f);
-
-        // Construct and run the parallel animation of the four translation and
-        // scale properties (X, Y, SCALE_X, and SCALE_Y).
-        AnimatorSet set = new AnimatorSet();
-        set
-                .play(ObjectAnimator.ofFloat(expander, View.X, startBounds.left, finalBounds.left))
-                .with(ObjectAnimator.ofFloat(expander, View.Y, startBounds.top, finalBounds.top))
-                .with(ObjectAnimator.ofFloat(expander, View.SCALE_X, startScale, 1f))
-                .with(ObjectAnimator.ofFloat(expander, View.SCALE_Y, startScale, 1f));
-        set.setDuration(500);
-        set.setInterpolator(new DecelerateInterpolator());
-        set.addListener(new AnimatorListenerAdapter() {
-            @Override
-            public void onAnimationEnd(Animator animation) {
-                animator = null;
-            }
-
-            @Override
-            public void onAnimationCancel(Animator animation) {
-                animator = null;
-            }
-        });
-        set.start();
-        animator = set;
-
-        // Upon clicking the zoomed-in image, it should zoom back down
-        // to the original bounds and show the thumbnail instead of
-        // the expanded image.
-        final float startScaleFinal = startScale;
-        expander.setOnClickListener(view -> {
-            if (animator != null) {
-                animator.cancel();
-            }
-
-            // Animate the four positioning/sizing properties in parallel,
-            // back to their original values.
-            AnimatorSet set1 = new AnimatorSet();
-            set1.play(ObjectAnimator
-                    .ofFloat(expander, View.X, startBounds.left))
-                    .with(ObjectAnimator.ofFloat(expander, View.Y, startBounds.top))
-                    .with(ObjectAnimator.ofFloat(expander, View.SCALE_X, startScaleFinal))
-                    .with(ObjectAnimator.ofFloat(expander, View.SCALE_Y, startScaleFinal));
-            set1.setDuration(500);
-            set1.setInterpolator(new DecelerateInterpolator());
-            set1.addListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    thumbView.setAlpha(1f);
-                    expander.setVisibility(View.GONE);
-                    animator = null;
-                }
-
-                @Override
-                public void onAnimationCancel(Animator animation) {
-                    thumbView.setAlpha(1f);
-                    expander.setVisibility(View.GONE);
-                    animator = null;
-                }
-            });
-            set1.start();
-            animator = set1;
-        });
-    }
-
-    /**
      * Display a Dialog showing the image for the feedback
      *
      * @param view unused
      */
     public void showImage(View view) {
         if (getFeedback().hasImage()) {
-            zoomImageFromThumb((ImageView) view);
+            zoom.zoomImageFromThumb(feedback_photo, expander, expandContainer);
         } else {
             takePicture(null);
         }
@@ -396,7 +279,7 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
                     setFeedbackPhoto(null);
 
                     // hide expander and show thumbnail
-                    findViewById(R.id.expander).setVisibility(View.INVISIBLE);
+                    expander.setVisibility(View.INVISIBLE);
                     feedback_photo.setAlpha(1f);
 
                     // close the dialogs for the image
@@ -408,6 +291,15 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
         removeHint.show();
     }
 
+    /**
+     * Initiates an image capture intent. This will result in an camera being started to take a picture
+     * the resulting picture will be saved under a created filename which consists of the feedbacks id
+     * and the current time as long timestamp for unique filenames
+     * <p>
+     * Depending in the used camera app the image might also be saved to the camera apps configured gallery!
+     *
+     * @param view unused
+     */
     public void takePicture(View view) {
         Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
         // Ensure that there's a camera activity to handle the intent
@@ -421,11 +313,13 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
                 startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
             }
         }
-
-        // note: picture will also be saved in the gallery
-        // this seems to be dependant on the camera app being used, so there is no general fix afaik
     }
 
+    /**
+     * Get the file that points to the image name of the feedback
+     *
+     * @return image file
+     */
     private File getImageFile() {
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = new File(storageDir, feedback.getImage() + ".jpg");
@@ -435,6 +329,11 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
         return image;
     }
 
+    /**
+     * Create a new unique image name and return the file
+     *
+     * @return the image file
+     */
     private File createImageFile() {
         feedback.setOldImage(feedback.getImage());
         feedback.setImage(feedback.getId() + "_" + System.currentTimeMillis());
@@ -444,14 +343,11 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        // react on the result of the capture image intent
         if (requestCode == REQUEST_TAKE_PHOTO) {
             if (resultCode == RESULT_OK) {
-                System.out.println("PICTURE RESULT ");
-
                 BitmapFactory.Options opt = new BitmapFactory.Options();
                 opt.inSampleSize = 4;
-                System.out.println(mCurrentPhotoPath);
-
                 Bitmap bitmap = BitmapFactory.decodeFile(mCurrentPhotoPath, opt);
 
                 // save file to local storage
@@ -464,6 +360,7 @@ public class FeedbackEditActivity extends AppCompatActivity implements OnMapRead
                 feedback.setNewImage(true);
                 setFeedbackPhoto(bitmap);
             } else {
+                // result was not ok -> reset the oldImage
                 feedback.setImage(feedback.getOldImage());
                 feedback.setOldImage("");
             }
