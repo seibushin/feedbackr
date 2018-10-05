@@ -15,6 +15,14 @@ import java.io.File;
 
 import de.hhu.cs.feedbackr.model.Feedback;
 
+/**
+ * This class is used to access the Firebase Storage. The Firebase Storage provides a way to save
+ * files.
+ * We use firebase storage to store the images of the feedback.
+ * The images are saved under the feedback ID and the current time represented as long.
+ * <p>
+ * This class provides a function to upload and delete a file.
+ */
 public class FirebaseStorageHelper {
     // Create a storage reference from our app
     private static StorageReference storageRef = FirebaseStorage.getInstance().getReference();
@@ -23,7 +31,9 @@ public class FirebaseStorageHelper {
     public static StorageReference feedbackRef = storageRef.child("feedback");
 
     /**
-     * Upload the image of the given feedback
+     * Upload the image of the given feedback. This method uses the class @{@link UploadTask} which
+     * executes the upload on a different thread to not block the ui. This implicates that the upload
+     * happens async.
      *
      * @param feedback the feedback
      */
@@ -43,7 +53,7 @@ public class FirebaseStorageHelper {
                 Log.d(FirebaseStorageHelper.class.getName(), "Unsuccessful upload");
             }).addOnSuccessListener(taskSnapshot -> {
                 // Upload was successful
-                Log.d(FirebaseStorageHelper.class.getName(),"Successful upload");
+                Log.d(FirebaseStorageHelper.class.getName(), "Successful upload");
             });
         }
 
@@ -74,13 +84,13 @@ public class FirebaseStorageHelper {
         // Delete the file
         image.delete().addOnSuccessListener(aVoid -> {
             // File deleted successfully
-            Log.d(FirebaseStorageHelper.class.getName(),"Image deletion successful");
+            Log.d(FirebaseStorageHelper.class.getName(), "Image deletion successful");
         }).addOnFailureListener(exception -> {
             int errorCode = ((StorageException) exception).getErrorCode();
             if (errorCode == StorageException.ERROR_OBJECT_NOT_FOUND) {
                 Log.d(FirebaseStorageHelper.class.getName(), "Image deletion unsuccessful - object not found");
             } else {
-                Log.d(FirebaseStorageHelper.class.getName(),"Image deletion unsuccessful");
+                Log.d(FirebaseStorageHelper.class.getName(), "Image deletion unsuccessful");
             }
         });
     }

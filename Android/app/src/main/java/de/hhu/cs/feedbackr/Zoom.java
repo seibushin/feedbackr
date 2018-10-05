@@ -11,7 +11,7 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.ImageView;
 
 /**
- * This class allows to zoom in views. This function is used to show dialogs and enlarge thumbnails
+ * This class allows to zoom in views. It contains functions to show dialogs and enlarge thumbnails.
  * <p>
  * The code is based on the following implementation:
  * https://developer.android.com/training/animation/zoom

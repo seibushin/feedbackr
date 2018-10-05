@@ -14,6 +14,10 @@ import java.util.Objects;
 
 import de.hhu.cs.feedbackr.model.CategoryConverter;
 
+/**
+ * This class provides methods for working with bitmaps, more specifically for working with the
+ * bitmaps of the category icons.
+ */
 public class Helper {
     /**
      * @param context    Context for getting Resources

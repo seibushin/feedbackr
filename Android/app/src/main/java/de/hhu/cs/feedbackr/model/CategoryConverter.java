@@ -5,9 +5,13 @@ import android.content.Context;
 import de.hhu.cs.feedbackr.R;
 
 /**
- * Created by antonborries on 26/04/2017.
+ * This class provides access to the different categories. Every feedback can be attached to a
+ * certain category. To make working with these categories easier there are methods for translating
+ * the string to the tag, the tag to the string and the tag to the associated drawable icon.
+ * <p>
+ * The file /res/values/arrays.xml contains the available categories which can be selected for a
+ * feedback by the user issuing the feedback.
  */
-
 public class CategoryConverter {
     final public static String POS_GENERAL = "POS_GENERAL";
     final private static String POS_SIT = "POS_SIT";

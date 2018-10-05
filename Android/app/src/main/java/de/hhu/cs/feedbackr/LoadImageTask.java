@@ -14,15 +14,29 @@ import java.io.File;
 import de.hhu.cs.feedbackr.firebase.FirebaseStorageHelper;
 import de.hhu.cs.feedbackr.model.Feedback;
 
+/**
+ * This class can be used to load images from firebase in the background. On result the listener
+ * will be executed on the MainThread, which is able to interact with the UI.
+ */
 public class LoadImageTask extends AsyncTask<File, Void, Void> {
     private LoadImageTask.OnBitmapCreatedListener onBitmapCreatedListener;
 
     private Feedback feedback;
 
+    /**
+     * Constructor, to create a new LoadImageTask for the given feedback
+     *
+     * @param feedback
+     */
     public LoadImageTask(Feedback feedback) {
         this.feedback = feedback;
     }
 
+    /**
+     * Set the listener, the listener must be set!
+     *
+     * @param onBitmapCreatedListener
+     */
     public void setOnBitmapCreatedListener(LoadImageTask.OnBitmapCreatedListener onBitmapCreatedListener) {
         this.onBitmapCreatedListener = onBitmapCreatedListener;
     }
@@ -54,6 +68,9 @@ public class LoadImageTask extends AsyncTask<File, Void, Void> {
         return null;
     }
 
+    /**
+     * Listener interface, for when the bitmap was created
+     */
     public interface OnBitmapCreatedListener {
         void onBitmapCreated(Bitmap bitmap);
     }

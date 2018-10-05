@@ -136,6 +136,9 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
         return mFeedback.size();
     }
 
+    /**
+     * Listener that reacts on changes in the data size
+     */
     public interface OnSizeChangedListener {
         void changed();
     }

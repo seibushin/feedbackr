@@ -1,0 +1,65 @@
+{
+  "rules": {
+    //".read": "auth != null",
+    //".write": "auth != null",
+
+    "users": {
+    	"$user_id": {
+        // grants write access to the owner of this user account
+        // whose uid must exactly match the key ($user_id)
+        ".write": "$user_id === auth.uid",
+      	".read": "$user_id === auth.uid"
+      }
+    },
+
+		"feedback": {
+      ".indexOn": ["owner"],
+      ".read": "auth != null",
+      "$feedback_id": {
+        // the following read rule does not allow read on feedback only on the childs
+        // ".read": "auth != null && (data.child('owner').val() == auth.uid || data.child('published').val() == true)",
+      	".write": "auth != null && (data.child('owner').val() == auth.uid || newData.child('owner').val() == auth.uid)"
+      }
+    },
+
+    "geofire": {
+      // Allow anyone to read the GeoFire index
+      ".read": "auth != null",
+
+      // Index each location's geohash for faster querying
+      ".indexOn": ["g"],
+
+      // Schema validation
+      "$key": {
+        // Allow anyone to add, update, or remove keys in the GeoFire index
+        ".write": true,
+
+        // Key validation
+        ".validate": "newData.hasChildren(['g', 'l']) && newData.getPriority().length <= 22 && newData.getPriority().length > 0",
+
+        // Geohash validation
+        "g": {
+          ".validate": "newData.val() == newData.parent().getPriority()"
+        },
+
+        // Location coordinates validation
+        "l": {
+          "0" : {
+            ".validate": "newData.isNumber() && newData.val() >= -90 && newData.val() <= 90"
+          },
+          "1" : {
+            ".validate": "newData.isNumber() && newData.val() >= -180 && newData.val() <= 180"
+          },
+          "$other": {
+            ".validate": false
+          }
+        },
+
+        // Don't allow any other keys to be written
+        "$other": {
+          ".validate": false
+        }
+      }
+    }
+  }
+}

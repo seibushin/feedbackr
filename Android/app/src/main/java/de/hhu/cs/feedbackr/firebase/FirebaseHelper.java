@@ -17,8 +17,31 @@ import de.hhu.cs.feedbackr.model.Feedback;
 import de.hhu.cs.feedbackr.model.Profile;
 
 /**
- * Created by antonborries on 21/09/16.
- *
+ * This class provides methods to save and delete the feedback, as well as save profile.
+ * To access the content one can get the DatabaseReferences to the different locations
+ * and access them as desired.
+ * This class also provides a method to create a unique feedback ID.
+ * <p>
+ * The data is managed in a Firebase database.
+ * <p>
+ * The structure of the database is as follows:
+ * feedbackr-[ID]       (the root node)
+ * - feedback           (contains all feedbacks)
+ * - - [feedback ID]    (a single feedback)
+ * - geofire            (contains geo information for every feedback)
+ * - - [feedback ID]    (geo information for the specific feedback ID)
+ * - users              (holds the profile information, if a user decides to use a profile)
+ * - - [user ID]        (profile for user with the ID)
+ * <p>
+ * To enforce certain security rules, firebase allows to define rules which allow or restrict
+ * access to the information stored in the database. The rules are located in the firebase console
+ * <p>
+ * The configuration can be found under /app/google-services.json, this file can be downloaded via the
+ * Firebase Console (https://console.firebase.google.com/).
+ * <p>
+ * To allow geo queries Geofire (https://github.com/firebase/geofire-java) is used. Geofire utilizes
+ * geohashs to allow queries for a specific location and radius. Further information can be found
+ * in the projects github repository.
  */
 
 public class FirebaseHelper {
@@ -74,6 +97,8 @@ public class FirebaseHelper {
     }
 
     /**
+     * Saves the profile to Firebase
+     *
      * @param profile the users profile
      */
     public static void saveProfile(Profile profile) {
@@ -121,14 +146,31 @@ public class FirebaseHelper {
         return mFeedbackRef.push().getKey();
     }
 
+    /**
+     * Get the reference to geofire
+     *
+     * @return firebase geofire reference
+     */
     public static GeoFire getGeofire() {
         return geoFire;
     }
 
+    /**
+     * get the firebase feedbacks reference
+     *
+     * @return firebase feedbacks reference
+     */
     public static DatabaseReference getFeedbackRef() {
         return mFeedbackRef;
     }
 
+    /**
+     * Get the user reference. The child is only available if the user has edited his profile.
+     * Otherwise the local installation of the app provides an anonymous user authentication
+     * which is used to identify the user
+     *
+     * @return firebase user reference
+     */
     public static DatabaseReference getUserRef() {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
         if (user == null) {
