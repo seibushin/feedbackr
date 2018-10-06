@@ -3,7 +3,19 @@
 The original App was created by Anton Borries as part of his bachelor thesis. Since then most parts
 of the source code have been improved, deleted or refactored by Sebastian Meyer as part of his project work.
 
-To see which parts were edited, please check the commit history.
+To see which exact components of the app were edited, please check the commit history.
+
+##What is Feedbackr?
+Feedbackr allows the user to discover and create Feedback for his current location. The Feedback
+can be of possible or negative nature. The Feedback can be enriched by adding a rating between 0-5 stars,
+a description, a photo or adding it to a predefined set of available categories.
+
+The user might choose to set the feedback to private, which will hide it from other users.
+
+Using the MapView one is able to check for feedback near his current location. By enabling or
+disabling the available filters the feedback can be filtered as needed.
+
+Every user is authenticated anonymously at firebase, were the data is stored.
 
 ##Configure Firebase
 - update google-services.json, the file can be accessed via the firebase console
@@ -25,10 +37,15 @@ To see which parts were edited, please check the commit history.
 -- additional reports can be send manually
 
 ##Creating the APK
-###Signing Configs
-keystore.properties
-(keystore.properties.example)
-keystore.jks
+1. Open the Build Variants inside Android Studio and select the desired Build Variant (debug/release)
+2. Make sure you have configured the keystore.properties correctly
+2.1. Check keystore.properties.example for more information
+3. Select Build > Build APK(s)
+
+If you were unable to build the APK make sure your configuration is correct
+- root directory contains keystore.jks and keystore.properties will the correct information
+- the build variant is set to release
+- the apps build.gradle contains the correct signingsConfigs
 
 ##What has been done?
 1. Firebase
@@ -67,6 +84,7 @@ keystore.jks
 4.5.1. The feedback is saved directly after issuing one
 4.5.2. On back the changes are saved
 4.5.3. Unnecessary buttons removed to improve the user experience
+4.6. The visual have been improved (SendFeedback, Dialogs, ...)
 
 4. Google Play
 4.1. Google Play account configured for the app

@@ -18,9 +18,13 @@ import java.util.Objects;
 import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.view.activity.MainActivity;
 
-
 /**
- * A Class To Display the Send Feedback Buttons
+ * This fragment is shown to the user after the app has been started. It gives the user to option
+ * to submit a positive or negative feedback for the current location.
+ * <p>
+ * On selection of one of the options. A {@link de.hhu.cs.feedbackr.view.activity.FeedbackEditActivity}
+ * is started and the feedback can be edited. The feedback is transmitted to firebase immediately
+ * after choosing one of the options by clicking the "button".
  */
 public class FeedbackSendFragment extends Fragment {
 
@@ -52,7 +56,7 @@ public class FeedbackSendFragment extends Fragment {
             double scale = (double) bitmapW / imageW;
 
             int x = (int) Math.floor(event.getX() * scale);
-            int  y = (int) Math.floor(event.getY() * scale);
+            int y = (int) Math.floor(event.getY() * scale);
 
             int pixel = bitmap.getPixel(x, y);
 

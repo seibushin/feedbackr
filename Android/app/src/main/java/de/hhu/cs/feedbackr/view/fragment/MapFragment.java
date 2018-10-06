@@ -56,7 +56,20 @@ import de.hhu.cs.feedbackr.model.Feedback;
 import de.hhu.cs.feedbackr.view.activity.MainActivity;
 
 /**
- * A Fragment to Display A Map in the MainActivity
+ * The MapFragment displays a @{@link MapView} depending on the current location of the device
+ * the nearby feedback is shown. The maximal radius of the feedback circle is 3000 meter.
+ * The radius is adjusted depending on the zoom level of the map.
+ * <p>
+ * In the top left of the view, there are 4 buttons which serve as filter, to limit the shown
+ * feedback. You can display private / public feedback and positive / negative.
+ * Additionally there is another button which allows to move the center of the circle to the current
+ * position of the map.
+ * <p>
+ * The Feedback is stored in 4 hashmaps for each possible combination of filter.
+ * <p>
+ * If the user chooses to touch a feedback marker, a dialog appears displaying additional information
+ * about the selected feedback. If the feedback has a image present, the image will be shown as a
+ * small thumbnail, on touch the image will be shown by zooming it into the underlying container
  */
 public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickListener, GoogleMap.OnCameraIdleListener, OnMapReadyCallback {
     private static final String PRIVATE_PREFERENCE_KEY = "private_marker";
@@ -120,7 +133,7 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
     }
 
     /**
-     * Get the last used filter for the user
+     * Get the last used filter for the user from the preferences
      */
     private void getPreferences() {
         SharedPreferences sharedPref = Objects.requireNonNull(getActivity()).getPreferences(Context.MODE_PRIVATE);
@@ -268,8 +281,8 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
     }
 
     /**
-     * Attaches a listener to the GeoFire query. Which will give all Feedback in a certain area/radius.
-     * The returned Feedback keys will be used to get the Feedback.
+     * Attaches a listener to the GeoFire query. Which will return all Feedback in a certain area/radius.
+     * The returned Feedback keys will be used to get the actual Feedback object.
      */
     private void addFeedbackListener() {
         query.addGeoQueryEventListener(new GeoQueryEventListener() {

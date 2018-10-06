@@ -49,6 +49,13 @@ import de.hhu.cs.feedbackr.view.fragment.FeedbacksFragment;
 import de.hhu.cs.feedbackr.view.fragment.LocationErrorFragment;
 import de.hhu.cs.feedbackr.view.fragment.MapFragment;
 
+/**
+ * The MainActivity is the central entry point to the app. It holds one of the available fragments
+ * from de.hhu.cs.feedback.view.fragment
+ * <p>
+ * It initiates the location updates, connects the user to firebase and sets up the Activity which
+ * hosts the feedback, map and feedbacks fragment.
+ */
 public class MainActivity extends AppCompatActivity implements BottomNavigationView.OnNavigationItemSelectedListener {
     private static final int PERMISSION_LOCATION_REQUEST_CODE = 0;
     private static final String REQUESTING_LOCATION_UPDATES_KEY = "Requesting Location";
@@ -119,6 +126,9 @@ public class MainActivity extends AppCompatActivity implements BottomNavigationV
         return currentLocation;
     }
 
+    /**
+     * Update the profile from firebase. There might not be a profile available for the current user!
+     */
     private void getProfile() {
         if (Profile.getInstance() == null) {
             Objects.requireNonNull(FirebaseHelper.getUserRef()).addValueEventListener(new ValueEventListener() {

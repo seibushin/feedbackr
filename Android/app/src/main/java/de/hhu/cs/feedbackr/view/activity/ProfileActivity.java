@@ -12,7 +12,8 @@ import de.hhu.cs.feedbackr.firebase.FirebaseHelper;
 import de.hhu.cs.feedbackr.model.Profile;
 
 /**
- * Activity for Displaying a Feedback and Editing it
+ * The profile activity allows the user to edit his profile and choose if the profile should be
+ * attached to the given feedback per default.
  */
 public class ProfileActivity extends AppCompatActivity {
     /**

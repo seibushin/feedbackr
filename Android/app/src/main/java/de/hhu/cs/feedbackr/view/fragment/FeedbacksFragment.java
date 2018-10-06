@@ -18,9 +18,13 @@ import java.util.Objects;
 import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.view.FeedbackAdapter;
 
-
 /**
- * A Fragment to Display the Profile Information
+ * This fragment utilizes a RecyclerView to display the profile associated to the current user.
+ * The list element displays some basic information. On select the edit view opens and the
+ * selected feedback can be edited.
+ * <p>
+ * See {@link FeedbackAdapter} and {@link de.hhu.cs.feedbackr.view.FeedbackHolder} for additional
+ * information
  */
 public class FeedbacksFragment extends Fragment {
     private RecyclerView mFeedbackLayout;

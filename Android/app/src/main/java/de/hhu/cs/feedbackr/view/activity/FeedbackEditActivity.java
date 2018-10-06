@@ -50,7 +50,22 @@ import de.hhu.cs.feedbackr.model.Feedback;
 import de.hhu.cs.feedbackr.model.Profile;
 
 /**
- * Activity for Displaying a Feedback and Editing it
+ * The FeedbackEditActivity handles all actions involved in creating and updating a feedback. It
+ * also provides a button to switch the feedback typ from negative to positive as well as delete
+ * the feedback.
+ * <p>
+ * After creating a feedback by selecting one of the options in the {@link de.hhu.cs.feedbackr.view.fragment.FeedbackSendFragment}
+ * the user will be shown this activity, where he can edit the given feedback.
+ * <p>
+ * The user can also add a picture to the feedback by touching the camera icon, which will result
+ * in opening a camera app which is able to handle the capture image intent issued by the user.
+ * After taking the picture the app will downsample it to a fourth of the original size. This is
+ * done to reduce the amount of data needed to be transferred between the user and firebase.
+ * <p>
+ * Note: depending on the camera app the image might also be saved to the camera apps gallery.
+ * <p>
+ * The Activity provides a {@link Zoom} dialog which shows the image and gives the options to retake
+ * or delete it.
  */
 public class FeedbackEditActivity extends AppCompatActivity implements OnMapReadyCallback {
     static final int REQUEST_TAKE_PHOTO = 105;

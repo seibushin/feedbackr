@@ -1,6 +1,5 @@
 package de.hhu.cs.feedbackr.view.fragment;
 
-
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
@@ -11,9 +10,9 @@ import android.view.ViewGroup;
 import de.hhu.cs.feedbackr.R;
 import de.hhu.cs.feedbackr.view.activity.MainActivity;
 
-
 /**
- * A Fragment to Display a Location error
+ * A fragment to display a location error. This fragment is used if the gps is not enabled on the
+ * device and gives the user a possibility  to enable it and return to the feedback send fragment.
  */
 public class LocationErrorFragment extends Fragment {
     public LocationErrorFragment() {

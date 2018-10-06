@@ -11,7 +11,10 @@ import android.webkit.WebView;
 import de.hhu.cs.feedbackr.R;
 
 /**
- * Activity for Displaying a Feedback and Editing it
+ * The AboutActivity displays general information about the app. It also provides a place to
+ * show the used licenses.
+ * <p>
+ * The licence information is handled by the app/src/assets/license.html file.
  */
 public class AboutActivity extends AppCompatActivity {
     /**
@@ -41,7 +44,9 @@ public class AboutActivity extends AppCompatActivity {
     }
 
     /**
-     * Show the about dialog
+     * Show the license information hosted inside a webView
+     * <p>
+     * Note: the initialisation of the WebView might cause some delay.
      */
     public void showLicense(View view) {
         // get the webView and load the about info
