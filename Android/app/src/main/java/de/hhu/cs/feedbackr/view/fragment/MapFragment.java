@@ -473,52 +473,54 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                 boolean change = (feedback == null || !feedback.getId().equals(Objects.requireNonNull(dataSnapshot.getValue(Feedback.class)).getId()));
                 feedback = dataSnapshot.getValue(Feedback.class);
-                binding.setFeedback(feedback);
+                if (feedback != null) {
+                    binding.setFeedback(feedback);
 
-                if (feedback.hasImage()) {
-                    // show indicator
-                    loadImg.setVisibility(View.VISIBLE);
+                    if (feedback.hasImage()) {
+                        // show indicator
+                        loadImg.setVisibility(View.VISIBLE);
 
-                    // get image file
-                    String imageFileName = feedback.getImage();
-                    File storageDir = Objects.requireNonNull(getActivity()).getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-                    File image = new File(storageDir, imageFileName + ".jpg");
+                        // get image file
+                        String imageFileName = feedback.getImage();
+                        File storageDir = Objects.requireNonNull(getActivity()).getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+                        File image = new File(storageDir, imageFileName + ".jpg");
 
-                    // load image
-                    LoadImageTask loadImageTask = new LoadImageTask(feedback);
-                    loadImageTask.setOnBitmapCreatedListener(img -> {
-                        setFeedbackPhoto(img);
+                        // load image
+                        LoadImageTask loadImageTask = new LoadImageTask(feedback);
+                        loadImageTask.setOnBitmapCreatedListener(img -> {
+                            setFeedbackPhoto(img);
+                            loadImg.setVisibility(View.INVISIBLE);
+                        });
+                        loadImageTask.execute(image);
+                    } else {
                         loadImg.setVisibility(View.INVISIBLE);
-                    });
-                    loadImageTask.execute(image);
-                } else {
-                    loadImg.setVisibility(View.INVISIBLE);
-                    setFeedbackPhoto(null);
-                }
+                        setFeedbackPhoto(null);
+                    }
 
-                // show edit button
-                if (feedback.getOwner().equals(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())) {
-                    expander.findViewById(R.id.edit_feedback).setVisibility(View.VISIBLE);
-                } else {
-                    expander.findViewById(R.id.edit_feedback).setVisibility(View.GONE);
-                }
-                // zoom the dialog if new feedback
-                if (change) {
-                    zoom.zoomView(expander, expandContainer);
-                } else {
-                    // update icon
-                    Bitmap bmp = Helper.getBitmapFromVectorDrawable(CategoryConverter.tagToDrawable(feedback.getCategory()), feedback.isPositive(), getContext());
-                    if (privateNegMarker.containsKey(feedback.getId())) {
-                        privateNegMarker.get(feedback.getId()).setIcon(BitmapDescriptorFactory.fromBitmap(bmp));
-                        if (feedback.isPositive()) {
-                            // move marker to pos hashmap
-                            privatePosMarker.put(feedback.getId(), privateNegMarker.remove(feedback.getId()));
-                        }
-                    } else if (privatePosMarker.containsKey(feedback.getId())) {
-                        privatePosMarker.get(feedback.getId()).setIcon(BitmapDescriptorFactory.fromBitmap(bmp));
-                        if (!feedback.isPositive()) {
-                            // move marker
-                            privateNegMarker.put(feedback.getId(), privatePosMarker.remove(feedback.getId()));
+                    // show edit button
+                    if (feedback.getOwner().equals(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid())) {
+                        expander.findViewById(R.id.edit_feedback).setVisibility(View.VISIBLE);
+                    } else {
+                        expander.findViewById(R.id.edit_feedback).setVisibility(View.GONE);
+                    }
+                    // zoom the dialog if new feedback
+                    if (change) {
+                        zoom.zoomView(expander, expandContainer);
+                    } else {
+                        // update icon
+                        Bitmap bmp = Helper.getBitmapFromVectorDrawable(CategoryConverter.tagToDrawable(feedback.getCategory()), feedback.isPositive(), getContext());
+                        if (privateNegMarker.containsKey(feedback.getId())) {
+                            privateNegMarker.get(feedback.getId()).setIcon(BitmapDescriptorFactory.fromBitmap(bmp));
+                            if (feedback.isPositive()) {
+                                // move marker to pos hashmap
+                                privatePosMarker.put(feedback.getId(), privateNegMarker.remove(feedback.getId()));
+                            }
+                        } else if (privatePosMarker.containsKey(feedback.getId())) {
+                            privatePosMarker.get(feedback.getId()).setIcon(BitmapDescriptorFactory.fromBitmap(bmp));
+                            if (!feedback.isPositive()) {
+                                // move marker
+                                privateNegMarker.put(feedback.getId(), privatePosMarker.remove(feedback.getId()));
+                            }
                         }
                     }
                 }
