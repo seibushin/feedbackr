@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-
     <string-array name="positive_array">
         <item name="cat_pos_general">@string/cat_pos_general</item>
         <item name="cat_pos_sit">@string/cat_pos_sit</item>

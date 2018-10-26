@@ -1,12 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="feedback_success">Gefahr erfolgreich gemeldet!</string>
-    <string name="feedback_you_gave">Gesendetes Feedback</string>
     <string name="cancel">Abbrechen</string>
     <string name="feedback">Feedback</string>
     <string name="map">Karte</string>
-    <string name="profile">Profil</string>
-    <string name="auth_failed">Authentifikation fehlgeschlagen</string>
+    <string name="feedbacks">Feedbacks</string>
+    <string name="auth_failed">Authentifikation fehlgeschlagen - Bitte Netzwerkeinstellungen prüfen und App neustarten</string>
     <string name="save">Speichern</string>
     <string name="feedback_explain">Beschreibe dein Feedback…</string>
     <string name="title_activity_main">Feedbackr</string>
@@ -15,8 +14,8 @@
     <string name="feedback_negative">Negatives Feedback senden</string>
     <string name="feedback_positive">Positives Feedback senden</string>
     <string name="feedback_send">%s Feedback gesendet</string>
-    <string name="negative">negatives</string>
-    <string name="positive">positives</string>
+    <string name="negative">Negatives</string>
+    <string name="positive">Positives</string>
     <string name="content_description_calendar">Kalender</string>
     <string name="content_description_location_error">Standort Fehler</string>
     <string name="content_description_retry">Erneut Versuchen</string>
@@ -45,10 +44,40 @@
     <string name="hide">verstecken</string>
     <string name="show">zeigen</string>
     <string name="show_hide">zeigen/verstecken</string>
-    <string name="show_hide_private">Mein Feedback %s</string>
-    <string name="show_hide_public">Öffentliches Feedback %s</string>
+    <string name="show_hide_private">Mein Feedback %1$s</string>
+    <string name="show_hide_public">Öffentliches Feedback %1$s</string>
+    <string name="show_hide_postive">Positives Feedback %1$s</string>
+    <string name="show_hide_negative">Negatives Feedback %1$s</string>
     <string name="switch_feedback">Wechsel Feedback zu %s</string>
-    <string name="switch_warning">Wecheln des Feedbacks löscht die aktuelle Kategorie</string>
+    <string name="switch_warning">Wechseln des Feedbacks löscht die aktuelle Kategorie</string>
     <string name="switch_word">Wechseln</string>
     <string name="noLocation">Kein Standort verfügbar</string>
+
+    <string name="menu_profile">Profil</string>
+    <string name="menu_about">About</string>
+
+    <string name="license">Lizenzen</string>
+    <string name="ok">OK</string>
+
+    <string name="profile_attach">Profil immer anhängen</string>
+    <string name="profile_gender">Geschlecht</string>
+    <string name="profile_gender_m">Mann</string>
+    <string name="profile_gender_f">Frau</string>
+    <string name="profile_gender_mf">Kein</string>
+    <string name="profile_age">Alter</string>
+
+    <string name="feedback_attach">Profil anhängen</string>
+    <string name="dialog_image_title">Bild zum Feedback</string>
+    <string name="attach_profile_no_profile">Kein Profil</string>
+    <string name="attach_profile_no_proile_desc">Bitte bearbeite dein Profil um es anhängen zu können.</string>
+    <string name="noAuth">Nicht angemeldet</string>
+    <string name="remove_image_neg">Abbrechen</string>
+    <string name="remove_image_pos">Entfernen</string>
+    <string name="remove_image">Bild entfernen</string>
+
+    <string name="about_info">
+        Feedbackr wurde am Lehrstuhl für Programmiersprachen und Softwaretechnik der Heinrich-Heine-Universität Düsseldorf (stups.hhu.de) entwickelt.
+        \n
+        \nSollten Sie fragen zu dem Projekt haben können Sie sich gerne an @hhu.de wenden.
+    </string>
 </resources>

@@ -1,108 +1,102 @@
 package de.hhu.cs.feedbackr.view;
 
 import android.databinding.DataBindingUtil;
+import android.support.annotation.NonNull;
+import android.support.v7.util.SortedList;
 import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.util.SortedListAdapterCallback;
 import android.view.LayoutInflater;
-import android.view.View;
 import android.view.ViewGroup;
 
-import de.hhu.cs.feedbackr.R;
-import de.hhu.cs.feedbackr.databinding.FeedbackHolderBinding;
-import de.hhu.cs.feedbackr.model.CategoryConverter;
-import de.hhu.cs.feedbackr.model.Feedback;
-import de.hhu.cs.feedbackr.model.FirebaseHelper;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.ValueEventListener;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Objects;
+
+import de.hhu.cs.feedbackr.R;
+import de.hhu.cs.feedbackr.databinding.FeedbackHolderBinding;
+import de.hhu.cs.feedbackr.firebase.FirebaseHelper;
+import de.hhu.cs.feedbackr.model.CategoryConverter;
+import de.hhu.cs.feedbackr.model.Feedback;
+import de.hhu.cs.feedbackr.view.activity.MainActivity;
 
 /**
  * RecyclerView.Adapter for Created Feedback Holder
  */
 
 public class FeedbackAdapter extends RecyclerView.Adapter {
-    private final ArrayList<Feedback> mFeedback;
+    private OnSizeChangedListener listener;
+    private HashMap<String, Feedback> data = new HashMap<>();
+    private final SortedList<Feedback> mFeedback = new SortedList<>(Feedback.class, new SortedListAdapterCallback<Feedback>(this) {
+        @Override
+        public int compare(Feedback o1, Feedback o2) {
+            return o2.getDate().compareTo(o1.getDate());
+        }
+
+        @Override
+        public boolean areContentsTheSame(Feedback oldItem, Feedback newItem) {
+            return false;
+        }
+
+        @Override
+        public boolean areItemsTheSame(Feedback item1, Feedback item2) {
+            return item1 == item2;
+        }
+    });
+
 
     /**
      * Creates the adapter
      */
-    public FeedbackAdapter() {
-        mFeedback = new ArrayList<>();
-        DatabaseReference userRef = FirebaseHelper.getUserRef();
-        if (userRef != null) {
-            //Listen to Changes in the Feedback Section of the User
-            userRef.child("feedback").addChildEventListener(new ChildEventListener() {
-                @Override
-                public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                    //For new Items Get the Feedback from the Feedback Section. Gets called when first Loaded
-                    FirebaseHelper.getFeedback().child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            Feedback feedback = dataSnapshot.getValue(Feedback.class);
-                            if (feedback != null) {
-                                mFeedback.add(feedback);
-                                notifyItemInserted(mFeedback.size() - 1);
-                            }
-                        }
+    public FeedbackAdapter(OnSizeChangedListener listener2) {
+        this.listener = listener2;
+        // get all feedback of the user
+        FirebaseHelper.getFeedbackRef().orderByChild("owner").equalTo(Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid()).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, String s) {
+                Feedback feedback = dataSnapshot.getValue(Feedback.class);
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
+                if (feedback != null) {
+                    // add Feedback
+                    mFeedback.add(feedback);
+                    data.put(feedback.getId(), feedback);
+                    listener.changed();
                 }
+            }
 
-                @Override
-                public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-                    //When a Feedback Changed get it from the Feedback Section
-                    FirebaseHelper.getFeedback().child(dataSnapshot.getKey()).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            Feedback feedback = dataSnapshot.getValue(Feedback.class);
-                            for (Feedback old : mFeedback) {
-                                //Swap the Old Feedback with the new One
-                                if (feedback != null && old.getId().equals(feedback.getId())) {
-                                    int pos = mFeedback.indexOf(old);
-                                    mFeedback.set(pos, feedback);
-                                    notifyItemChanged(pos);
-                                    break;
-                                }
-                            }
-                        }
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, String s) {
+                Feedback feedback = dataSnapshot.getValue(Feedback.class);
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
+                if (feedback != null) {
+                    // update feedback
+                    mFeedback.updateItemAt(mFeedback.indexOf(data.get(feedback.getId())), feedback);
+                    data.put(feedback.getId(), feedback);
                 }
+            }
 
-                @Override
-                public void onChildRemoved(DataSnapshot dataSnapshot) {
-                    //Delete the Feedback from the List
-                    String key = dataSnapshot.getKey();
-                    for (int i = 0; i < mFeedback.size(); i++) {
-                        if (mFeedback.get(i).getId().equals(key)) {
-                            mFeedback.remove(i);
-                            notifyItemRemoved(i);
-                        }
-                    }
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+                // delete the feedback from the list
+                String key = dataSnapshot.getKey();
+                if (data.containsKey(key)) {
+                    mFeedback.remove(data.remove(key));
+                    notifyDataSetChanged();
+                    listener.changed();
                 }
+            }
 
-                @Override
-                public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, String s) {
+            }
 
-                }
-
-                @Override
-                public void onCancelled(DatabaseError databaseError) {
-
-                }
-            });
-        }
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+            }
+        });
     }
 
     /**
@@ -112,8 +106,9 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
      * @param viewType ViewType
      * @return ViewHolder is instance of FeedbackHolder
      */
+    @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         FeedbackHolderBinding binding = DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), R.layout.feedback_holder, parent, false);
         return new FeedbackHolder(binding);
     }
@@ -125,17 +120,11 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
      * @param position Position of the Feedback in the List
      */
     @Override
-    public void onBindViewHolder(final RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull final RecyclerView.ViewHolder holder, int position) {
         FeedbackHolderBinding binding = ((FeedbackHolder) holder).getBinding();
         final Feedback feedback = mFeedback.get(position);
         binding.setFeedback(feedback);
-        binding.getRoot().setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                ((MainActivity) view.getContext()).switchToFeedbackDetail(feedback);
-
-            }
-        });
+        binding.getRoot().setOnClickListener(view -> ((MainActivity) view.getContext()).switchToFeedbackDetail(feedback));
         binding.feedbackHolderImg.setImageResource(CategoryConverter.tagToDrawable(feedback.getCategory()));
     }
 
@@ -145,5 +134,12 @@ public class FeedbackAdapter extends RecyclerView.Adapter {
     @Override
     public int getItemCount() {
         return mFeedback.size();
+    }
+
+    /**
+     * Listener that reacts on changes in the data size
+     */
+    public interface OnSizeChangedListener {
+        void changed();
     }
 }

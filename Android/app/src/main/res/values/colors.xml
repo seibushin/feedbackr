@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#2196F3</color>
+    <color name="colorPrimary">#1976D2</color>
     <color name="colorPrimaryDark">#1976D2</color>
+
+    <color name="mapCircleFill">#3c1976d2</color>
+    <color name="mapCircleStroke">#1976d2</color>
+
+    <color name="colorBackground">#FFFFFF</color>
 
     <color name="colorPrimaryDetail">#FFFFFF</color>
     <color name="colorPrimaryDarkDetail">#9E9E9E</color>
@@ -12,4 +17,5 @@
 
     <color name="red">#f44336</color>
     <color name="green">#4CAF50</color>
+    <color name="white">#FFFFFF</color>
 </resources>

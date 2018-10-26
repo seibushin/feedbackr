@@ -1,3 +1,10 @@
+# Feedbackr
+
+The Android application was revised by (s.meyer@hhu.de). You can find the Android application in the
+directory Android.
+
+# Decription
+
 This is the appendix of my Bachelor Thesis. It contains the following
 
 * A pdf Version of this bachelor thesis
