@@ -123,8 +123,11 @@ public class MapFragment extends Fragment implements GoogleMap.OnMarkerClickList
         // create a zoom object to expand the dialog and imageView
         zoom = new Zoom();
         zoom.setAnimationEndListener(() -> {
-            FirebaseHelper.getFeedbackRef().child(feedback.getId()).removeEventListener(dialogListener);
-            feedback = null;
+            // remove listener
+            if (feedback != null) {
+                FirebaseHelper.getFeedbackRef().child(feedback.getId()).removeEventListener(dialogListener);
+                feedback = null;
+            }
         });
 
         getPreferences();
