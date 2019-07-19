@@ -45,7 +45,7 @@
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
-            android:value="AIzaSyBZT8FMc7OVYbDY-HnzPEwH4H1Ti7wArWI" />
+            android:value="Invalid - Generate new API KEY" />
 
         <provider
             android:name="android.support.v4.content.FileProvider"
