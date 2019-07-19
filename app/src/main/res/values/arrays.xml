@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="positive_array">
+        <item name="cat_pos_general">@string/cat_pos_general</item>
+        <item name="cat_pos_sit">@string/cat_pos_sit</item>
+        <item name="cat_pos_toilet">@string/cat_pos_toilet</item>
+        <item name="cat_pos_disability_access">@string/cat_pos_disability_access</item>
+        <item name="cat_pos_wifi">@string/cat_pos_wifi</item>
+        <item name="cat_pos_eat_drink">@string/cat_pos_eat_drink</item>
+        <item name="cat_pos_nice_view">@string/cat_pos_nice_view</item>
+    </string-array>
+
+    <string-array name="negative_array">
+        <item name="cat_neg_general">@string/cat_neg_general</item>
+        <item name="cat_neg_dark">@string/cat_neg_dark</item>
+        <item name="cat_neg_dirty">@string/cat_neg_dirty</item>
+        <item name="cat_neg_people">@string/cat_neg_people</item>
+        <item name="cat_neg_walking_friendly">@string/cat_neg_walking_friendly</item>
+        <item name="cat_neg_graffiti">@string/cat_neg_graffiti</item>
+    </string-array>
+</resources>
